@@ -88,44 +88,6 @@ def setupResults(sql):
         for p in coll.products.all():
             stateids.add(p.id)
 
-#    reactantids = set(collisions.values_list('reactants', flat=True))
-#    productids  = set(collisions.values_list('products',  flat=True))
-#    stateids = reactantids.union(productids)
-#    stateids = [40,61]
-    #stateids = productids
-    #stateids = reactantids
-    #with open("/home/veljko/NodeSoftware/ddd.txt", "w") as f:
-        #f.write(str(q.deconstruct))
-        #for sid in stateids: f.write("%s \n" %(sid))
-    #states = models.AtomicState.objects.filter(pk__in=stateids)
-
-    '''
-    states = models.SpeciesState.objects.filter(pk__in=stateids)
-    atoms = set()
-    sourceids = set()
-    particles = set()
-    molecules = set()
-
-    lastmodifiedheader = datetime.datetime(1970, 1, 1, 1, 1)
-
-    for state in states:
-        if isinstance(state, models.AtomicState):
-            atoms.add(state.species)
-        elif isinstance(state, models.MolecularState):
-            molecules.add(state.species)
-
-    for atom in atoms:
-        atom.States = atom.speciesstate_set.filter(pk__in=stateids)
-        for state in atom.States:
-            # number of electrons as a difference between nuclear and ion charge
-            shell = Shell(state.qn, int(atom.nuclear_charge) - atom.ion_charge)
-            component = Component([shell])
-            state.Components = []
-            state.Components.append(component)
-
-    for molecule in molecules:
-        molecule.States = molecule.speciesstate_set.filter(pk__in=stateids)
-    '''
 
     states = models.SpeciesState.objects.filter(pk__in=stateids)
 

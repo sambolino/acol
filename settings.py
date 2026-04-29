@@ -17,6 +17,10 @@ os.environ['LC_ALL'] = 'en_US.utf8'
 # As long as this is set to True there will be additional
 # logging output and performance will be slower.
 DEBUG=True
+
+NODE_DIR = os.path.dirname(os.path.abspath(__file__))          # .../nodes/acol
+BASE_PATH = os.path.dirname(os.path.dirname(NODE_DIR))         # .../NodeSoftware
+
 ###################################################
 # Database connection
 # Setting up the database type and information.
@@ -39,8 +43,8 @@ DATABASES = {
 # You NEED to set a valid email-adress here
 # since critical errors will be emailed there.
 ###############################################
-ADMINS = (            ('Veljko Vujcic', 'veljko@aob.rs'),
-            ('Vladimir Sreckovic', 'vlada@ipb.rs'),
+ADMINS = (  ('', ''),
+            ('', ''),
         )
 
 MANAGERS = ADMINS
@@ -52,9 +56,7 @@ MANAGERS = ADMINS
 # is called 'node.log' and resides in your
 # systems TMP-directory
 ###############################################
-#LOGGING['handlers']['logfile']['filename'] = '/home/veljko/NodeSoftware/nodes/acol/node.log'
-
-#NODENAME = 'acol'
+NODENAME='acol'
 
 LOGGING['handlers']['logfile']['filename'] = os.path.join(
     BASE_PATH,
@@ -129,7 +131,7 @@ TEMPLATE_DIRS = (
     BASE_PATH+'/nodes/acol/static/templates/'
 )
 
-TMPDIR = '/home/veljko/NodeSoftware/tmp'
+TMPDIR = os.path.join(BASE_PATH, 'tmp')
 
 MIRRORS = {
 }
