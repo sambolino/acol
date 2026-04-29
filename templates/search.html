@@ -1,0 +1,315 @@
+<html>
+<head>
+	<style type="text/css">
+	
+	* {
+	margin:0;
+	padding:0;
+	}
+	
+	p {
+	color: black;
+	}
+	
+   h1 {
+      color: #892339;
+      font-size: 55px;
+      font-family: Calibri;
+   }
+
+	h3 {
+	color: #FFFFFF;
+	}
+	
+	h2 {
+	#padding-left: 110px;
+	margin: 0 auto;
+	color: #892339;
+	}
+	
+	body {
+	background: #ffffff;
+	font-family: Calibri;
+	color: black;
+	}
+
+	/*select{
+		padding-left: 50px;
+	}*/
+	
+	#header {
+	width: 100%;
+   text-align: left;
+	#height: 150px;
+	background: #FFFFFF;
+	border-bottom: 2px #892339 solid;
+	}
+	
+	#header_content{
+	position: relative;
+	#width: 740px;
+	margin: 0 auto;
+	
+	}
+	
+	#header_content img{
+	#position: absolute;
+	#top: 6px;
+	#right:5px;
+	}
+	
+	#footer_content h3{
+	position: inherit;
+	font-family: Calibri;
+	color: #892339;
+	}
+	
+	#footer_content h3 a {
+	font-family: Calibri;
+	color: #FFFFFF;
+	}
+	
+	a, a:visited {
+            color: #892339;
+      font-family: Calibri;
+	text-decoration:none;
+	}
+	
+	a:hover {
+            color: #892339;
+      font-family: Calibri;
+	text-decoration:underline;
+	}
+	
+	#wrapper {
+	padding-left: 0px;
+	/*padding-right: 215px;*/
+	position: static;
+	vertical-align: center;
+	/*width: 900px;*/
+	margin: 0 auto;
+
+	/*overflow: hidden;*/
+	}
+	
+/*	h1{
+	#margin-top: 6px;
+	color: #FFFFFF;
+	}*/
+	
+	h1 span{
+	color:#892339;
+	}
+	
+	#footer {
+	width: 100%;
+	#height: 145px;
+	background: #FFFFFF;
+	/*border-top: 2px #892339 solid;*/
+	}
+	
+	#footer_content {
+	position: relative;
+	width: 740px;
+	margin: 0 auto;
+	padding: 5px;
+	
+	}
+	
+	#footer_content p{
+	position: absolute;
+	right:15px;
+	}
+		
+/*	div.selectBox {
+	z-index:0;
+	position: relative;
+	display:inline-block;
+	cursor:default;
+	text-align:left;
+	line-height:30px;
+	clear:both;
+	color:#888;
+}	*/
+/*span.selected {
+    width:167px;
+    text-indent:20px;
+    border:1px solid #ccc;
+    border-right:none;
+    border-top-left-radius:5px;
+    border-bottom-left-radius:5px;
+    background:#f6f6f6;
+    overflow:hidden;
+}
+span.selectArrow {
+    width:30px;
+    border:1px solid #60abf8;
+    border-top-right-radius:5px;
+    border-bottom-right-radius:5px;
+    text-align:center;
+    font-size:20px;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    background:#4096ee;
+}
+span.selectArrow,span.selected{
+    position:relative;
+    float:left;
+    height:24px;  
+}
+div.selectOptions{	
+	z-index:1;
+	overflow: auto;
+	display: none;
+	position: absolute;
+    top:22px;
+    left: 0;
+    width:198px;
+    border:1px solid #ccc;
+    border-bottom-right-radius:5px;
+    border-bottom-left-radius:5px;
+    background:#f6f6f6;
+    padding-top:2px;
+}
+span.selectOption {
+    display:block;
+    width:80%;
+    line-height:10px;
+    padding:5px 10%;
+}
+span.selectOption:hover {
+    color:#f6f6f6;
+    background:#4096ee;         
+}        	*/
+label{
+	display: block;
+	color: #892339;
+	width: 150px;			
+	}	
+fieldset {	
+	margin: 0 auto;
+	background: #FFFFFF;
+	border: 2px solid #4096ee;
+	width: 500px;
+	padding: 10px;
+	 }
+input{
+	#margin-left: 108px;
+	#width: 150px;
+	/*align: center;*/
+	border-color: #4096ee;
+	cursor: pointer;
+	}
+input:hover {
+	background: #4096ee;
+}
+
+.styled-select select {
+   background: #FFFFFF;
+   width: 268px;
+   padding: 2px;
+   font-size: 12px;
+   border: 2px solid #ccc;
+   height: 30px;
+   padding-left: 5px;
+}
+
+#footer
+{
+    clear: both;
+    /*top-border: 2px #892339 solid;*/
+    background: white;
+    #color: White;
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+    line-height: normal;
+    margin: 0;
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+}
+
+	</style>
+	<link href="{{BASE_URL}}/static/xmldisplay/XMLDisplay.css" type="text/css" rel="stylesheet"/>
+    <script src="{{BASE_URL}}/static/xmldisplay/XMLDisplay.js" type="text/javascript"></script>
+</head>
+<body>
+	<div id = "header">
+      <table width="100%">
+         <tr>
+            <td width="220">
+               <img src="{{BASE_URL}}/static/images/lapc.jpg" title="LAPC Logo"/>
+            </td>
+            <td align="center">
+               <h2>LACP@IPB e/Mol RADAM DATABASE</h2><br />
+               <h5><a href="http://mail.ipb.ac.rs/~centar3/acp.html" target="_blank">Laboratory for Atomic Collision Processes</a> ::
+               <a href="http://www.ipb.ac.rs/" target="_blank">Institute of Physics Belgrade</a></h5>
+            </td>
+            <td width="220">
+               <img src="{{BASE_URL}}/static/images/nanoIBCT.jpg" title="nanoIBCT Logo"/>
+            </td>
+         </tr>
+      </table>
+	</div>
+    
+	<div id="wrapper">
+		
+        <div class = "styled-select">
+            <!--h2>Search the database</h2-->
+            <p align="center">
+                Search for {% if requestables %}
+                <select id='searchRequest'>
+                {% for item in requestables %}
+                    <option>{{item}}</option>
+                {% endfor %}
+                </select>
+                {% endif %}
+                with conditions 
+                <input type="text" id="searchCondition" value=""/><input type="submit" value="Search" onclick="UpdateResults()">
+            </p>
+            
+            
+            
+            <div id="results" style="position:relative;">
+                <div id="div2" style="max-height:100%;overflow:auto;">
+                    <div id="XMLHolder"></div>
+                </div>
+            </div>
+        
+        </div>
+	</div>
+	    
+	<div id="footer">
+            <img width="600" src="{{BASE_URL}}/static/images/partners.jpg"/>
+	</div>
+    
+    <script type="text/javascript">
+        function updateResultsSize() {
+            var res = document.getElementById('results');
+            var foot = document.getElementById('footer');
+            var h = foot.offsetTop - res.offsetTop
+            res.style.cssText="height:" + h + "; position:relative;";
+        }
+        window.onresize = function () {
+            updateResultsSize()
+        }
+        function UpdateResults()
+        {
+            xsamsDoc = null;
+            updateResultsSize()
+            var searchString = "select " + document.getElementById('searchRequest').value;
+            if (document.getElementById('searchCondition').value != '')
+                searchString += " where " + document.getElementById('searchCondition').value
+            var str = "{{BASE_URL}}/tap/sync?REQUEST=doQuery&LANG=VSS2RDM&FORMAT=XSAMS&QUERY=" + searchString;
+            //LoadXMLString("XMLHolder", '');
+            document.getElementById('XMLHolder').innerHTML = 'Loading...';
+            LoadXML("XMLHolder",str);
+        }
+    </script>
+	
+</body>
+</html>

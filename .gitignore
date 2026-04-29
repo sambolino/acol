@@ -1,0 +1,52 @@
+############################
+# Python / Django basics
+############################
+__pycache__/
+*.py[cod]
+*.pyo
+
+############################
+# Logs
+############################
+*.log
+node.log
+
+############################
+# Local settings / secrets
+############################
+local_settings.py
+.env
+
+############################
+# Database (if ever used locally)
+############################
+*.sqlite3
+
+############################
+# Virtual environments
+############################
+venv/
+env/
+ENV/
+.venv/
+
+############################
+# OS / editor junk
+############################
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+############################
+# Build / temp
+############################
+tmp/
+*.tmp
+
+############################
+# Your project-specific
+############################
+data/
+static/plots/  # generated plots
+static_old/
