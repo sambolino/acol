@@ -1,0 +1,7 @@
+Django==2.2.8
+django-polymorphic
+django-extensions
+django-floppyforms
+mysqlclient
+lxml
+vamdc-nodesoftware @ git+https://github.com/VAMDC/NodeSoftware.git
