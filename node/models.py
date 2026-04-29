@@ -4,6 +4,7 @@ from polymorphic.models import PolymorphicModel
 from django.utils import timezone
 
 class Species(PolymorphicModel):
+    """Base chemical species shared by atom and molecule specializations."""
     name = models.CharField(max_length=128, db_index=True)
     inchi = models.CharField(max_length=256)
     inchikey = models.CharField(max_length=128)
@@ -21,6 +22,7 @@ class Species(PolymorphicModel):
         db_table = u'species'
 
 class Molecule(Species):
+    """Molecular species with helper for XSAMS-friendly formula rendering."""
 
     #code taken from wadis node
     def getLatexFormula(self):
@@ -71,6 +73,7 @@ class Molecule(Species):
         verbose_name_plural = 'Molecules'
 
 class Atom(Species):
+    """Atomic species with local XSAMS XML override for ion/state hierarchy."""
 
     def XML(self):
         from vamdctap.generators import (
@@ -223,6 +226,7 @@ class Atom(Species):
         verbose_name_plural = 'Atoms'
 
 class SpeciesState(PolymorphicModel):
+    """Base state model linked to a species instance."""
     description = models.CharField(max_length=256, null=True, blank=True)
     species = models.ForeignKey(Species, on_delete=models.CASCADE)
     def __str__(self):
@@ -233,6 +237,7 @@ class SpeciesState(PolymorphicModel):
         db_table = u'speciesstates'
 
 class AtomicState(SpeciesState):
+    """Atomic electronic state identified here by principal quantum number."""
     qn = models.PositiveSmallIntegerField(null=True, blank=True)
     def _get_description(self):
         if (self.description==None or self.description==''):
@@ -243,6 +248,7 @@ class AtomicState(SpeciesState):
         db_table = u'atomicstates'
 
 class MolecularState(SpeciesState):
+    """Molecular state placeholder (description is currently the key field)."""
     def _get_description(self):
         #if (self.description==None or self.description==''):
         #    return "r: %s, v: %s" % (self.n, self.l)

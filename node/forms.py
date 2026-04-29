@@ -3,9 +3,11 @@ import floppyforms as forms
 from node.models import *
 
 class NumberInput(forms.TextInput):
+    """HTML5 numeric input widget."""
     input_type = 'number'
 
 class Search_form(forms.Form):
+    """Form driving the simple XSAMS search UI."""
     #AtomsSearch = forms.ModelChoiceField(queryset = Atom.objects.filter(ion_charge=0), label='Atom', to_field_name='inchikey')
     CollTypesXsams = forms.ModelChoiceField(queryset = CollisionType.objects.all(),
             label="Collision Type", to_field_name='iaea_code')
@@ -14,6 +16,7 @@ class Search_form(forms.Form):
             widget = forms.Select(attrs={'disabled':'disabled'}))
 
 class Plot_form(forms.Form):
+    """Form driving collision rate-coefficient plotting UI."""
     CollTypesPlot = forms.ModelChoiceField(queryset = CollisionType.objects.all(),
             label="Collision Type", to_field_name='iaea_code')
     AtomsPlot = forms.ModelChoiceField(queryset = Atom.objects.filter(ion_charge=0),
