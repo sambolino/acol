@@ -1,12 +1,15 @@
-# -*- coding: utf-8 -*-
-#
-# This module (which must have the name queryfunc.py) is responsible
-# for converting incoming queries to a database query understood by
-# this particular node's database schema.
-#
-# This module must contain a function setupResults, taking a sql object
-# as its only argument.
-#
+"""Query-time data shaping for VAMDC-TAP requests.
+
+This module is called by NodeSoftware during request execution. The central
+entrypoint is :func:`setupResults`, which receives the parsed TAP SQL object,
+runs local ORM lookups, and returns a dictionary containing standardized keys
+(`Sources`, `CollTrans`, `Atoms`, `Molecules`, `Particles`, `HeaderInfo`).
+
+Important behavior in this file:
+- Build an atom/ion/state hierarchy dynamically at runtime.
+- Attach temporary attributes consumed by the XSAMS generators.
+- Add synthetic electron participants for specific IAEA process codes.
+"""
 
 # library imports
 
@@ -24,6 +27,7 @@ log = logging.getLogger("vamdc.node.queryfu")
 LIMIT = 1000
 
 class Particle:
+    """Lightweight runtime-only particle object used in generated output."""
     def __init__(self, particletype):
         if particletype == 'electron':
             self.charge = -1
@@ -36,20 +40,24 @@ class Particle:
         return hash(self.name)
 
 class Shell:
+    """Runtime shell representation used for atomic composition mapping."""
     def __init__(self, qn, number_of_electrons):
         self.qn = qn
         self.number_of_electrons = number_of_electrons
 
 class Component:
+    """Runtime wrapper holding a list of shell objects."""
     def __init__(self, shells):
         self.Shells = shells
 
 class ReaProd:
+    """Runtime reactant/product reference used by collision serialization."""
     def __init__(self, stateid, speciesid):
         self.stateref = stateid
         self.speciesref = speciesid
 
 class DataSet:
+    """Runtime dataset wrapper expected by NodeSoftware collision output."""
     def __init__(self, tabdata):
         self.TabData = [tabdata]
 
@@ -65,7 +73,18 @@ class DataSet:
 
 def setupResults(sql):
     """
-    This function is always called by the NodeSoftware.
+    Build and return the standardized NodeSoftware response payload.
+
+    Parameters
+    ----------
+    sql:
+        Parsed TAP SQL structure provided by NodeSoftware.
+
+    Returns
+    -------
+    dict
+        Empty dict when no collisions match; otherwise contains the expected
+        top-level collections and header counters for XSAMS generation.
     """
     # log the incoming query
     log.debug(sql)
@@ -257,4 +276,3 @@ def setupResults(sql):
                 }
     else:
         return {}
-

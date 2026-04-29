@@ -16,6 +16,7 @@ from node.forms import *
 logger = logging.getLogger()
 
 def index(request):
+    """Render main UI page with search and plotting forms."""
     t = get_template('main.html')
     title = 'Search'
     f = Search_form()
@@ -24,6 +25,7 @@ def index(request):
     return HttpResponse(html)
 
 def get_products(request, coll_iaea_code):
+    """Return products for a collision type as inchikey->name JSON."""
     collType = CollisionType.objects.get(iaea_code=coll_iaea_code)
     products = Species.objects.filter(speciesstate__products__collision_type=collType)
     products_dict = {}
@@ -32,6 +34,7 @@ def get_products(request, coll_iaea_code):
     return HttpResponse(json.dumps(products_dict))
 
 def get_reactants(request, coll_iaea_code):
+    """Return reactants for a collision type as inchikey->name JSON."""
     collType = CollisionType.objects.get(iaea_code=coll_iaea_code)
     reactants = Species.objects.filter(speciesstate__reactants__collision_type=collType)
     reactants_dict = {}
@@ -40,6 +43,7 @@ def get_reactants(request, coll_iaea_code):
     return HttpResponse(json.dumps(reactants_dict))
 
 def get_atoms(request, coll_iaea_code):
+    """Return atoms (reactants or products) for a collision type."""
     collType = CollisionType.objects.get(iaea_code=coll_iaea_code)
     atoms = Atom.objects.filter(speciesstate__products__collision_type=collType) | \
             Atom.objects.filter(speciesstate__reactants__collision_type=collType)
@@ -50,6 +54,7 @@ def get_atoms(request, coll_iaea_code):
     return HttpResponse(json.dumps(atoms_dict))
 
 def get_atoms_no_ions(request, coll_iaea_code):
+    """Return neutral atoms only for a collision type."""
     collType = CollisionType.objects.get(iaea_code=coll_iaea_code)
     atoms = Atom.objects.filter(ion_charge=0, speciesstate__products__collision_type=collType) | \
             Atom.objects.filter(ion_charge=0, speciesstate__reactants__collision_type=collType)
@@ -59,6 +64,7 @@ def get_atoms_no_ions(request, coll_iaea_code):
     return HttpResponse(json.dumps(atoms_dict))
 
 def get_temps(request, coll_iaea_code, atom_inchi):
+    """Return indexed temperature axis values for plot UI."""
     from django.db.models import Q
     TabData = TabulatedData.objects.filter((Q(dataset__collision__reactants__species__inchikey=atom_inchi) |
         Q(dataset__collision__products__species__inchikey=atom_inchi)) &
@@ -71,6 +77,7 @@ def get_temps(request, coll_iaea_code, atom_inchi):
     return HttpResponse(json.dumps(temps_dict))
 
 def plot(request, coll_iaea_code, atom_inchi, temperature_index):
+    """Generate a plot image and return filename with plotted arrays as JSON."""
 
     rc_matrix = [[], [], [], [], []]
     rc_values = []

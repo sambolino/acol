@@ -1,9 +1,13 @@
-from vamdctap.unitconv import *
+"""VAMDC keyword mappings for ACol.
 
-# -*- coding: utf-8 -*-
+`RETURNABLES` maps standardized VAMDC returnable keys to object attributes or
+methods available during XSAMS generation.
+
+`RESTRICTABLES` maps standardized query constraints to Django ORM filter paths
+used by `sql2Q` conversion in `queryfunc.py`.
 """
-ExampleNode dictionary definitions.
-"""
+
+from vamdctap.unitconv import *
 
 # The returnable dictionary is used internally by the node and defines
 # all the ways the VAMDC standard keywords (left-hand side) maps to
@@ -155,5 +159,4 @@ RESTRICTABLES = {\
 'product1.Inchi' : 'product__atom__inchi',
 'product1.AtomStateShellPrincipalQN' : 'product__qn',
 """
-
 
