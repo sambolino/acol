@@ -36,7 +36,7 @@ def get_reactants(request, coll_iaea_code):
     reactants = Species.objects.filter(speciesstate__reactants__collision_type=collType)
     reactants_dict = {}
     for r in reactants:
-        reactants_dict[p.inchikey] = p.name
+        reactants_dict[p.inchikey] = r.name
     return HttpResponse(json.dumps(reactants_dict))
 
 def get_atoms(request, coll_iaea_code):
