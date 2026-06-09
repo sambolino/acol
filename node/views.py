@@ -66,9 +66,9 @@ def get_atoms_no_ions(request, coll_iaea_code):
 def get_temps(request, coll_iaea_code, atom_inchi):
     """Return indexed temperature axis values for plot UI."""
     from django.db.models import Q
-    TabData = TabulatedData.objects.filter((Q(dataset__collision__reactants__species__inchikey=atom_inchi) |
-        Q(dataset__collision__products__species__inchikey=atom_inchi)) &
-        Q(dataset__collision__collision_type__iaea_code=coll_iaea_code))
+    TabData = TabulatedData.objects.filter((Q(collision__reactants__species__inchikey=atom_inchi) |
+        Q(collision__products__species__inchikey=atom_inchi)) &
+        Q(collision__collision_type__iaea_code=coll_iaea_code))
     temps = TabData.all()[0].x.all()[0].data_values.split()
     temps_dict = {}
     for i, t in enumerate(temps):
@@ -87,37 +87,37 @@ def plot(request, coll_iaea_code, atom_inchi, temperature_index):
     if(coll_iaea_code in ["HPN", "HAS"]):
         #processes = Collision.objects.filter(reactants__species=atom)
         #temperatures = [int(i) for i in processes[0]..data_values.split()]
-        TabData = TabulatedData.objects.filter(dataset__collision__reactants__species__inchikey=atom_inchi,
-                dataset__collision__collision_type__iaea_code=coll_iaea_code)
+        TabData = TabulatedData.objects.filter(collision__reactants__species__inchikey=atom_inchi,
+                collision__collision_type__iaea_code=coll_iaea_code)
         for tabdata in TabData:
             #take the rc value from the Y axis, according to index of the X (temperature) axis
             yaxis = tabdata.y.all()[0]
             rc=float(yaxis.data_values.split()[int(temperature_index)])
             ylabel=yaxis.unit
             rc_values.append(rc)
-            reactants = tabdata.dataset.collision.reactants.all()
+            reactants = tabdata.collision.reactants.all()
             if isinstance(reactants[1], AtomicState):
                 n = reactants[1].qn
                 n_values.append(n)
     elif(coll_iaea_code in ["ERO", "EDR"]):
-        TabData = TabulatedData.objects.filter(dataset__collision__products__species__inchikey=atom_inchi,
-                dataset__collision__collision_type__iaea_code=coll_iaea_code)
+        TabData = TabulatedData.objects.filter(collision__products__species__inchikey=atom_inchi,
+                collision__collision_type__iaea_code=coll_iaea_code)
         for tabdata in TabData:
             #take the rc value from the Y axis, according to index of the X (temperature) axis
             yaxis = tabdata.y.all()[0]
             rc=float(yaxis.data_values.split()[int(temperature_index)])
             ylabel=yaxis.unit
             rc_values.append(rc)
-            products = tabdata.dataset.collision.products.all()
+            products = tabdata.collision.products.all()
             if isinstance(products[1], AtomicState):
                 n = products[1].qn
                 n_values.append(n)
     elif(coll_iaea_code=="EEX"):
-        TabData = TabulatedData.objects.filter(dataset__collision__reactants__species__inchikey=atom_inchi,
-                dataset__collision__collision_type__iaea_code=coll_iaea_code)
+        TabData = TabulatedData.objects.filter(collision__reactants__species__inchikey=atom_inchi,
+                collision__collision_type__iaea_code=coll_iaea_code)
         for tabdata in TabData:
-            reactants = tabdata.dataset.collision.reactants.all()
-            products = tabdata.dataset.collision.products.all()
+            reactants = tabdata.collision.reactants.all()
+            products = tabdata.collision.products.all()
             delta_n = 0
             if(isinstance(reactants[1], AtomicState) and isinstance(products[1], AtomicState)):
                 n = int(reactants[1].qn)
