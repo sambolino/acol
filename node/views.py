@@ -27,7 +27,7 @@ def index(request):
 def get_products(request, coll_iaea_code):
     """Return products for a collision type as inchikey->name JSON."""
     collType = CollisionType.objects.get(iaea_code=coll_iaea_code)
-    products = Species.objects.filter(speciesstate__products__collision_type=collType)
+    products = Species.objects.filter(speciesstate__products__collision_type=collType).distinct()
     products_dict = {}
     for p in products:
         products_dict[p.inchikey] = p.name
@@ -36,10 +36,10 @@ def get_products(request, coll_iaea_code):
 def get_reactants(request, coll_iaea_code):
     """Return reactants for a collision type as inchikey->name JSON."""
     collType = CollisionType.objects.get(iaea_code=coll_iaea_code)
-    reactants = Species.objects.filter(speciesstate__reactants__collision_type=collType)
+    reactants = Species.objects.filter(speciesstate__reactants__collision_type=collType).distinct()
     reactants_dict = {}
     for r in reactants:
-        reactants_dict[p.inchikey] = r.name
+        reactants_dict[r.inchikey] = r.name
     return HttpResponse(json.dumps(reactants_dict))
 
 def get_atoms(request, coll_iaea_code):

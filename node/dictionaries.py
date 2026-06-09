@@ -123,21 +123,21 @@ RESTRICTABLES = {\
 
 #general
 'AtomSymbol' : 'products__species__chemical_formula',
-#'AtomSymbol' : 'reactants__species__chemical_formula',
 'MoleculeChemicalName' : 'products__species__chemical_formula',
 'InchiKey' : 'products__species__inchikey',
 'Inchi' : 'products_species__inchi',
 'IonCharge': 'products_species__ion_charge',
-}
-"""
+
 #only search for reactants
-'reactant0.AtomSymbol' : 'reactants__atom__chemical_formula',
-'reactant0.InchiKey' : 'reactants__atom__inchikey',
-'reactant0.Inchi' : 'reactants__atom__inchi',
+'reactant0.AtomSymbol' : 'reactants__species__chemical_formula',
+'reactant0.MoleculeChemicalName' : 'products__species__chemical_formula',
+'reactant0.InchiKey' : 'reactants__species__inchikey',
+'reactant0.Inchi' : 'reactants__species__inchi',
 'reactant0.AtomStateShellPrincipalQN' : 'reactants__qn',
-'reactant1.AtomSymbol' : 'reactants__atom__chemical_formula',
-'reactant1.InchiKey' : 'reactants__atom__inchikey',
-'reactant1.Inchi' : 'reactants__atom__inchi',
+'reactant1.AtomSymbol' : 'reactants__species__chemical_formula',
+'reactant1.MoleculeChemicalName' : 'products__species__chemical_formula',
+'reactant1.InchiKey' : 'reactants__species__inchikey',
+'reactant1.Inchi' : 'reactants__species__inchi',
 'reactant1.AtomStateShellPrincipalQN' : 'reactants__qn',
 
 # collider is always an electron:
@@ -145,18 +145,21 @@ RESTRICTABLES = {\
 #'collider.ParticleName':test_constant(['electron']),
 
 # target could also be an origin_species
-'target.AtomSymbol' : 'reactant__atom__chemical_formula',
-'target.InchiKey' : 'reactant__atom__inchikey',
-'target.Inchi' : 'reactant__atom__inchi',
+'target.AtomSymbol' : 'reactant__species__chemical_formula',
+'target.MoleculeChemicalName' : 'products__species__chemical_formula',
+'target.InchiKey' : 'reactant__species__inchikey',
+'target.Inchi' : 'reactant__species__inchi',
 
 # only search for products
-'product0.AtomSymbol' : 'product__atom__chemical_formula',
-'product0.InchiKey' : 'product__atom__inchikey',
-'product0.Inchi' : 'product__atom__inchi',
-'product0.AtomStateShellPrincipalQN' : 'product__qn',
-'product1.AtomSymbol' : 'product__atom__chemical_formula',
-'product1.InchiKey' : 'product__atom__inchikey',
-'product1.Inchi' : 'product__atom__inchi',
-'product1.AtomStateShellPrincipalQN' : 'product__qn',
-"""
+'product0.AtomSymbol' : 'product__species__chemical_formula',
+'product0.MoleculeChemicalName' : 'products__species__chemical_formula',
+'product0.InchiKey' : 'product__species__inchikey',
+'product0.Inchi' : 'product__species__inchi',
+#'product0.AtomStateShellPrincipalQN' : 'product__qn',
+'product1.AtomSymbol' : 'product__species__chemical_formula',
+'product1.MoleculeChemicalName' : 'products__species__chemical_formula',
+'product1.InchiKey' : 'product__species__inchikey',
+'product1.Inchi' : 'product__species__inchi',
+#'product1.AtomStateShellPrincipalQN' : 'product__qn',
 
+}
