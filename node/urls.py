@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^plot/(?P<coll_iaea_code>[\w-]+)/(?P<atom_inchi>[\w-]+)/(?P<temperature_index>[\w.]+)/$', views.plot),
     url(r'^explore/processes/$', views.explore_processes),
     url(r'^explore/process/(?P<tabdata_id>\d+)/$', views.explore_process_data),
+    url(r'^overview/stats/$', views.overview_stats),
 ]

@@ -37,9 +37,10 @@
 	<div id="wrapper">
     <div id="tabs">
       <ul>
-        <li><a href="#tabs-1">individual cross sections</a></li>
-        <li><a href="#tabs-2">plot</a></li>
-        <li><a href="#tabs-3">explore data</a></li>
+        <li><a href="#tabs-1">Generate XSAMS</a></li>
+        <li><a href="#tabs-2">Qn plots</a></li>
+        <li><a href="#tabs-3">Overview</a></li>
+        <li><a href="#tabs-4">Explore data</a></li>
       </ul>
       <div id="tabs-1">
         <div class = "styled-select">
@@ -57,30 +58,63 @@
                <div id="PlotHolder"></div>
          </div>
       </div>
-      <div id="tabs-3">
+<div id="tabs-3">
+  <div id="OverviewHolder">
+
+    <div id="OverviewSummary">
+      Loading statistics...
+    </div>
+
+    <div class="OverviewCharts">
+
+      <div class="OverviewChartBox">
+        <h3>Datasets by collision type</h3>
+        <div id="OverviewDatasetsByType"></div>
+      </div>
+
+      <div class="OverviewChartBox">
+        <h3>Collisions by collision type</h3>
+        <div id="OverviewCollisionsByType"></div>
+      </div>
+
+      <div class="OverviewChartBox">
+        <h3>Top species/states</h3>
+        <div id="OverviewTopSpecies"></div>
+      </div>
+
+      <div class="OverviewChartBox">
+        <h3>Sources by dataset count</h3>
+        <div id="OverviewSources"></div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+      <div id="tabs-4">
   <div id="ExploreHolder">
 
     <div id="ExploreSummary">Loading database overview...</div>
 
     <div id="ExploreFilters">
-      <label>
-        Collision type:
-        <select id="ExploreCollisionType">
-          <option value="">all</option>
-        </select>
-      </label>
+<div class="ExploreFilterItem">
+  <label for="ExploreCollisionType">Collision type</label>
+  <select id="ExploreCollisionType">
+    <option value="">all</option>
+  </select>
+</div>
 
-      <label>
-        Species text:
-        <input id="ExploreSpeciesText" type="text" placeholder="H, He, BeD, Isoflurane...">
-      </label>
+<div class="ExploreFilterItem ExploreSpeciesFilterItem">
+  <label for="ExploreSpeciesText">Species filter</label>
+  <input id="ExploreSpeciesText" type="text" placeholder="formula or name, e.g. H, He, Hydrogen">
+</div>
 
-      <label>
-        Source:
-        <select id="ExploreSource">
-          <option value="">all</option>
-        </select>
-      </label>
+<div class="ExploreFilterItem">
+  <label for="ExploreSource">Source</label>
+  <select id="ExploreSource">
+    <option value="">all</option>
+  </select>
+</div>
     </div>
 
     <table id="ExploreTable">
@@ -89,7 +123,7 @@
           <th>Type</th>
           <th>Reaction</th>
           <th>X range</th>
-          <th>Y</th>
+          <th>Y range</th>
           <th>Source</th>
           <th></th>
         </tr>

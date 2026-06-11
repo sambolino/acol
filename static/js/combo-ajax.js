@@ -18,6 +18,110 @@ $(document).ready(function(){
 
     $("#tabs").tabs();
 
+    var overview_stats = null;
+
+    function loadOverviewStats() {
+        $('#OverviewSummary').html('Loading statistics...');
+
+        $.getJSON(base_url + '/overview/stats/', function(data) {
+            overview_stats = data;
+
+            renderOverviewSummary(data);
+            renderHorizontalBarChart(
+                '#OverviewDatasetsByType',
+                data.datasets_by_collision_type,
+                'collision_type',
+                'count'
+            );
+            renderHorizontalBarChart(
+                '#OverviewCollisionsByType',
+                data.collisions_by_collision_type,
+                'collision_type',
+                'count'
+            );
+            renderHorizontalBarChart(
+                '#OverviewTopSpecies',
+                data.top_species,
+                'species',
+                'count'
+            );
+            renderHorizontalBarChart(
+                '#OverviewSources',
+                data.sources_by_dataset_count,
+                'source',
+                'count'
+            );
+        }).fail(function() {
+            $('#OverviewSummary').html('Could not load statistics.');
+        });
+    }
+
+    function renderOverviewSummary(data) {
+        var summary = data.summary;
+
+        var html = '';
+        html += '<div class="OverviewCards">';
+        html += overviewCard('Datasets', summary.datasets);
+        html += overviewCard('Collisions', summary.collisions);
+        html += overviewCard('Collision types', summary.collision_types);
+        html += overviewCard('Species', summary.species);
+        html += overviewCard('States', summary.species_states);
+        html += overviewCard('Sources', summary.sources);
+        html += '</div>';
+
+        $('#OverviewSummary').html(html);
+    }
+
+    function overviewCard(label, value) {
+        return (
+            '<div class="OverviewCard">' +
+            '<div class="OverviewCardValue">' + htmlEscape(value) + '</div>' +
+            '<div class="OverviewCardLabel">' + htmlEscape(label) + '</div>' +
+            '</div>'
+        );
+    }
+
+    function renderHorizontalBarChart(holder, rows, label_key, value_key) {
+        if (!rows || rows.length == 0) {
+            $(holder).html('No data.');
+            return;
+        }
+
+        var max_value = 0;
+
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i][value_key] > max_value) {
+                max_value = rows[i][value_key];
+            }
+        }
+
+        var html = '';
+        html += '<div class="SimpleBarChart">';
+
+        for (var j = 0; j < rows.length; j++) {
+            var row = rows[j];
+            var width = 0;
+
+            if (max_value > 0) {
+                width = Math.round((row[value_key] / max_value) * 100);
+            }
+
+            html += '<div class="SimpleBarRow">';
+            html += '<div class="SimpleBarLabel">' + htmlEscape(row[label_key]) + '</div>';
+            html += '<div class="SimpleBarOuter">';
+            html += '<div class="SimpleBarInner" style="width:' + width + '%"></div>';
+            html += '</div>';
+            html += '<div class="SimpleBarValue">' + htmlEscape(row[value_key]) + '</div>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+
+        $(holder).html(html);
+    }
+
+    loadOverviewStats();
+
     var explore_rows = [];
 
     function htmlEscape(value) {
@@ -138,10 +242,12 @@ $(document).ready(function(){
             }
 
             if (species_text != '') {
+                var species_names = row.species_names || [];
                 var text = (
                     row.reaction + ' ' +
                     row.reactants.join(' ') + ' ' +
-                    row.products.join(' ')
+                    row.products.join(' ') + ' ' +
+                    species_names.join(' ')
                 ).toLowerCase();
 
                 if (text.indexOf(species_text) == -1) {
@@ -167,17 +273,17 @@ $(document).ready(function(){
         for (var i = 0; i < rows.length; i++) {
             var row = rows[i];
 
-            var source_ids = [];
+            var source_labels = [];
             for (var s = 0; s < row.sources.length; s++) {
-                source_ids.push(row.sources[s].acol_id);
+              source_labels.push(row.sources[s].display || row.sources[s].doi || row.sources[s].acol_id);
             }
 
             html += '<tr>';
             html += '<td>' + htmlEscape(row.collision_type) + '</td>';
             html += '<td>' + htmlEscape(row.reaction) + '</td>';
             html += '<td>' + htmlEscape(row.x_range + ' ' + row.x_unit) + '</td>';
-            html += '<td>' + htmlEscape(row.y_axis) + '</td>';
-            html += '<td>' + htmlEscape(source_ids.join(', ')) + '</td>';
+            html += '<td>' + htmlEscape(row.y_range + ' ' + row.y_unit) + '</td>';
+            html += '<td class="ExploreSourceCell">' + htmlEscape(source_labels.join(', ')) + '</td>';
             html += '<td><button class="ExplorePlotButton" data-id="' + row.id + '">plot</button></td>';
             html += '</tr>';
         }
