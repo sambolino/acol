@@ -204,15 +204,15 @@ def setupResults(sql):
         for p in ps:
             coll.Products.append(ReaProd(p.id, p.species.id))
 
-        #manually add electron depending on process type
-        processes_with_electron = ('HPN', 'HAS', 'EDR', 'ERO', 'ENI')
-        iaea = coll.collision_type.iaea_code
-        if iaea in processes_with_electron:
+        if coll.collision_type.has_electron_reactant or coll.collision_type.has_electron_product:
             p = Particle('electron')
             particles.add(p)
-            if iaea in ['HPN', 'HAS']: coll.Products.append(ReaProd('', 'XElectron'))
-            else: coll.Reactants.append(ReaProd('', 'XElectron'))
 
+            if coll.collision_type.has_electron_product:
+                coll.Products.append(ReaProd('', 'XElectron'))
+
+            if coll.collision_type.has_electron_reactant:
+                coll.Reactants.append(ReaProd('', 'XElectron'))
         '''
         coll.DataSets = models.DataSet.objects.filter(collision_id=coll.id)
 
