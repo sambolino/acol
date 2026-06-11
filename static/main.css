@@ -215,8 +215,8 @@ a:hover {
 
 .OverviewCharts {
     display: grid;
-    gap: 18px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .OverviewChartBox {
@@ -224,8 +224,13 @@ a:hover {
     border: 1px solid #d8dadd;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(35, 40, 45, 0.04);
-    min-height: 430px;
+    min-height: 380px;
     padding: 16px;
+}
+
+.OverviewChartBox--wide {
+    grid-column: 1 / -1;
+    min-height: 440px;
 }
 
 .OverviewChartBox h3 {
@@ -242,15 +247,15 @@ a:hover {
 .SimpleBarChart {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 .SimpleBarRow {
     align-items: center;
     display: grid;
     gap: 9px;
-    grid-template-columns: minmax(145px, 40%) 1fr 44px;
-    min-height: 26px;
+    grid-template-columns: minmax(170px, 38%) 1fr 48px;
+    min-height: 30px;
 }
 
 .SimpleBarLabel {
@@ -265,40 +270,16 @@ a:hover {
     background: #eef2f4;
     border: 1px solid #d6dee3;
     border-radius: 999px;
-    height: 17px;
+    height: 20px;
     overflow: hidden;
 }
 
 .SimpleBarInner {
-    background: linear-gradient(90deg, #4d7c8a 0%, #7f9e6b 100%);
+    background: #4d7c8a;
     border-radius: 999px;
     height: 100%;
     min-width: 2px;
     transform-origin: left center;
-}
-
-.ChartBlue .SimpleBarInner {
-    background: linear-gradient(90deg, #315f8d 0%, #7da6cf 100%);
-}
-
-.ChartBlue .SimpleBarRow:nth-child(even) .SimpleBarInner {
-    background: linear-gradient(90deg, #244f7c 0%, #5f92c2 100%);
-}
-
-.ChartOrange .SimpleBarInner {
-    background: linear-gradient(90deg, #a85f20 0%, #d99b55 100%);
-}
-
-.ChartOrange .SimpleBarRow:nth-child(even) .SimpleBarInner {
-    background: linear-gradient(90deg, #8d4e1a 0%, #c9843d 100%);
-}
-
-.ChartTeal .SimpleBarInner {
-    background: linear-gradient(90deg, #2f6f73 0%, #76a8a5 100%);
-}
-
-.ChartTeal .SimpleBarRow:nth-child(even) .SimpleBarInner {
-    background: linear-gradient(90deg, #285e62 0%, #5f9693 100%);
 }
 
 .SimpleBarValue {
@@ -314,6 +295,16 @@ a:hover {
 @keyframes growBar {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
+}
+
+@media (max-width: 900px) {
+    .OverviewCharts {
+        grid-template-columns: 1fr;
+    }
+
+    .OverviewChartBox--wide {
+        grid-column: auto;
+    }
 }
 
 /* =========================================================

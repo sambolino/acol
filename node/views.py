@@ -144,7 +144,12 @@ def _normalize_doi(doi):
     if doi.lower().startswith("doi:"):
         doi = doi[4:].strip()
 
-    for prefix in ("https://doi.org/", "http://doi.org/"):
+    for prefix in (
+        "https://doi.org/",
+        "http://doi.org/",
+        "https://dx.doi.org/",
+        "http://dx.doi.org/",
+    ):
         if doi.lower().startswith(prefix):
             doi = doi[len(prefix):].strip()
             break
@@ -171,7 +176,8 @@ def _doi_url(doi):
 
 
 def _source_to_dict(source):
-    doi = _normalize_doi(source.digital_object_id)
+    raw_doi = source.digital_object_id or ""
+    doi = _normalize_doi(raw_doi)
     title = source.title or ""
     year = source.year or ""
     title_short = _shorten_text(title)
@@ -191,7 +197,7 @@ def _source_to_dict(source):
         "display": display,
         "table_display": display,
         "year": year,
-        "doi": doi,
+        "doi": raw_doi,
         "doi_display": _doi_display(doi),
         "doi_url": _doi_url(doi),
         "uri": source.uri or "",
