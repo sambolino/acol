@@ -151,15 +151,15 @@ RESTRICTABLES = {\
 'target.Inchi' : 'reactant__species__inchi',
 
 # only search for products
-'product0.AtomSymbol' : 'product__species__chemical_formula',
+'product0.AtomSymbol' : 'products__species__chemical_formula',
 'product0.MoleculeChemicalName' : 'products__species__chemical_formula',
-'product0.InchiKey' : 'product__species__inchikey',
-'product0.Inchi' : 'product__species__inchi',
-#'product0.AtomStateShellPrincipalQN' : 'product__qn',
-'product1.AtomSymbol' : 'product__species__chemical_formula',
+'product0.InchiKey' : 'products__species__inchikey',
+'product0.Inchi' : 'products__species__inchi',
+#'product0.AtomStateShellPrincipalQN' : 'products__qn',
+'product1.AtomSymbol' : 'products__species__chemical_formula',
 'product1.MoleculeChemicalName' : 'products__species__chemical_formula',
-'product1.InchiKey' : 'product__species__inchikey',
-'product1.Inchi' : 'product__species__inchi',
-#'product1.AtomStateShellPrincipalQN' : 'product__qn',
+'product1.InchiKey' : 'products__species__inchikey',
+'product1.Inchi' : 'producst__species__inchi',
+#'product1.AtomStateShellPrincipalQN' : 'products__qn',
 
 }
