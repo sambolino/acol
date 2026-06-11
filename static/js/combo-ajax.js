@@ -37,28 +37,25 @@ $(document).ready(function(){
 
             renderOverviewSummary(data);
             renderHorizontalBarChart(
-                '#OverviewDatasetsByType',
-                data.datasets_by_collision_type,
-                'collision_type',
-                'count'
-            );
-            renderHorizontalBarChart(
                 '#OverviewCollisionsByType',
                 data.collisions_by_collision_type,
                 'collision_type',
-                'count'
+                'count',
+                'ChartBlue'
             );
             renderHorizontalBarChart(
                 '#OverviewTopSpecies',
                 data.top_species,
                 'species',
-                'count'
+                'count',
+                'ChartOrange'
             );
             renderHorizontalBarChart(
                 '#OverviewSources',
                 data.sources_by_dataset_count,
                 'source',
-                'count'
+                'count',
+                'ChartTeal'
             );
             overview_rendered = true;
             animateOverviewChartsOnce();
@@ -104,7 +101,7 @@ $(document).ready(function(){
         $('#OverviewHolder .SimpleBarChart').addClass('animate-bars');
     }
 
-    function renderHorizontalBarChart(holder, rows, label_key, value_key) {
+    function renderHorizontalBarChart(holder, rows, label_key, value_key, color_class) {
         if (!rows || rows.length == 0) {
             $(holder).html('No data.');
             return;
@@ -119,7 +116,7 @@ $(document).ready(function(){
         }
 
         var html = '';
-        html += '<div class="SimpleBarChart">';
+        html += '<div class="SimpleBarChart ' + htmlEscape(color_class || '') + '">';
 
         for (var j = 0; j < rows.length; j++) {
             var row = rows[j];
@@ -154,6 +151,7 @@ $(document).ready(function(){
     loadOverviewStats();
 
     var explore_rows = [];
+    var source_hover_timer = null;
 
     function htmlEscape(value) {
         if (value === null || value === undefined) {
@@ -194,7 +192,11 @@ $(document).ready(function(){
             types[row.collision_type] = row.collision_type_name;
 
             for (var s = 0; s < row.sources.length; s++) {
-                sources[row.sources[s].acol_id] = row.sources[s].table_display || row.sources[s].display || row.sources[s].title_short || row.sources[s].acol_id;
+                var source = row.sources[s];
+                sources[source.acol_id] = {
+                    label: source.title_short || source.title || source.display || source.acol_id,
+                    title: source.title || source.display || source.acol_id
+                };
             }
         }
 
@@ -206,9 +208,9 @@ $(document).ready(function(){
         });
 
         $('#ExploreSource').html('<option value="">all</option>');
-        $.each(sources, function(key, value) {
+        $.each(sources, function(key, source) {
             $('#ExploreSource').append(
-                '<option value="' + htmlEscape(key) + '">' + htmlEscape(value) + '</option>'
+                '<option value="' + htmlEscape(key) + '" title="' + htmlEscape(source.title) + '">' + htmlEscape(source.label) + '</option>'
             );
         });
     }
@@ -254,10 +256,75 @@ $(document).ready(function(){
         return false;
     }
 
+    function normalizeSpeciesQuery(value) {
+        return $.trim(value || '').toLowerCase();
+    }
+
+    function compactSpeciesText(value) {
+        return String(value || '').replace(/\s+/g, '');
+    }
+
+    function speciesSearchText(row) {
+        var species_names = row.species_names || [];
+        return (
+            compactSpeciesText(row.reaction) + ' ' +
+            compactSpeciesText(row.reactants.join(' ')) + ' ' +
+            compactSpeciesText(row.products.join(' ')) + ' ' +
+            species_names.join(' ')
+        ).toLowerCase();
+    }
+
+    function speciesTokens(row) {
+        var source = [row.reaction].concat(row.reactants || [], row.products || []).join(' ');
+        var matches = source.match(/[A-Za-z][a-z]?(?:\([^)]*\)|[+-])?/g) || [];
+        var tokens = [];
+
+        for (var i = 0; i < matches.length; i++) {
+            tokens.push(matches[i].toLowerCase());
+        }
+
+        return tokens;
+    }
+
+    function speciesTokenMatches(token, query) {
+        if (token == query) {
+            return true;
+        }
+
+        if (token.indexOf(query) !== 0) {
+            return false;
+        }
+
+        var next = token.charAt(query.length);
+        return next == '+' || next == '-' || next == '(' || next == '[' || next == '{';
+    }
+
+    function rowMatchesSpeciesFilter(row, query) {
+        query = normalizeSpeciesQuery(query);
+
+        if (query == '') {
+            return true;
+        }
+
+        if (query.length <= 2) {
+            var tokens = speciesTokens(row);
+
+            for (var i = 0; i < tokens.length; i++) {
+                if (speciesTokenMatches(tokens[i], query)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return speciesSearchText(row).indexOf(query) != -1;
+    }
+
     function getFilteredExploreRows() {
         var collision_type = $('#ExploreCollisionType').val();
         var source = $('#ExploreSource').val();
-        var species_text = $('#ExploreSpeciesText').val().toLowerCase();
+        var species_text = normalizeSpeciesQuery($('#ExploreSpeciesText').val());
 
         var rows = [];
 
@@ -272,18 +339,8 @@ $(document).ready(function(){
                 continue;
             }
 
-            if (species_text != '') {
-                var species_names = row.species_names || [];
-                var text = (
-                    row.reaction + ' ' +
-                    row.reactants.join(' ') + ' ' +
-                    row.products.join(' ') + ' ' +
-                    species_names.join(' ')
-                ).toLowerCase();
-
-                if (text.indexOf(species_text) == -1) {
-                    continue;
-                }
+            if (!rowMatchesSpeciesFilter(row, species_text)) {
+                continue;
             }
 
             rows.push(row);
@@ -322,41 +379,134 @@ $(document).ready(function(){
         $('#ExploreTable tbody').html(html);
     }
 
+    function doiText(source) {
+        var doi_text = source.doi || '';
+
+        if (doi_text && doi_text.toLowerCase().indexOf('doi:') !== 0) {
+            doi_text = 'doi:' + doi_text;
+        }
+
+        return doi_text;
+    }
+
     function sourceTooltip(source) {
         var parts = [];
         if (source.title) {
             parts.push(source.title);
         }
+        if (source.year) {
+            parts.push(source.year);
+        }
         if (source.doi_url) {
             parts.push(source.doi_url);
         }
+        if (source.acol_id) {
+            parts.push(source.acol_id);
+        }
         if (parts.length == 0) {
-            parts.push(source.display || source.acol_id || 'Source');
+            parts.push(source.display || 'Source');
         }
         return parts.join(' — ');
     }
 
+    function sourceHoverAttrs(source) {
+        return (
+            ' data-source-title="' + htmlEscape(source.title || source.display || source.acol_id || '') + '"' +
+            ' data-source-year="' + htmlEscape(source.year || '') + '"' +
+            ' data-source-doi="' + htmlEscape(doiText(source)) + '"' +
+            ' data-source-doi-url="' + htmlEscape(source.doi_url || '') + '"' +
+            ' data-source-acol-id="' + htmlEscape(source.acol_id || '') + '"'
+        );
+    }
+
     function renderDoiLink(source) {
-        // TODO: Add richer DOI metadata previews only if a safe backend proxy is available.
         if (!source.doi || !source.doi_url) {
             return '';
         }
 
-        var doi_text = source.doi;
-        if (doi_text.toLowerCase().indexOf('doi:') !== 0) {
-            doi_text = 'doi:' + doi_text;
-        }
-
-        return '<a class="DoiLink" href="' + htmlEscape(source.doi_url) + '" title="' + htmlEscape(sourceTooltip(source)) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(doi_text) + '</a>';
+        return '<a class="DoiLink SourceHoverTarget" href="' + htmlEscape(source.doi_url) + '" target="_blank" rel="noopener noreferrer"' + sourceHoverAttrs(source) + '>' + htmlEscape(doiText(source)) + '</a>';
     }
 
     function renderSourceSummary(source) {
-        var label = source.table_display || source.display || source.title_short || source.title || source.acol_id;
-        var html = '<span class="SourceSummary" data-acol-id="' + htmlEscape(source.acol_id) + '" title="' + htmlEscape(sourceTooltip(source)) + '">';
-        html += '<span class="SourceTitle">' + htmlEscape(label) + '</span>';
-        html += renderDoiLink(source);
+        var html = '<span class="SourceSummary" data-acol-id="' + htmlEscape(source.acol_id) + '">';
+
+        if (source.doi && source.doi_url) {
+            html += renderDoiLink(source);
+        } else {
+            var label = source.title_short || source.title || source.display || source.acol_id;
+            html += '<span class="SourceTitle SourceHoverTarget" tabindex="0"' + sourceHoverAttrs(source) + '>' + htmlEscape(label) + '</span>';
+        }
+
         html += '</span>';
         return html;
+    }
+
+    function ensureSourceHoverCard() {
+        if ($('#SourceHoverCard').length == 0) {
+            $('body').append('<div id="SourceHoverCard" class="SourceHoverCard" aria-hidden="true"></div>');
+        }
+
+        return $('#SourceHoverCard');
+    }
+
+    function sourceHoverCardHtml($target) {
+        var title = $target.data('source-title') || 'Source';
+        var year = $target.data('source-year');
+        var doi = $target.data('source-doi');
+        var doi_url = $target.data('source-doi-url');
+        var acol_id = $target.data('source-acol-id');
+        var html = '';
+
+        html += '<div class="SourceHoverCardTitle">' + htmlEscape(title) + '</div>';
+
+        if (year) {
+            html += '<div class="SourceHoverCardMeta">Year: ' + htmlEscape(year) + '</div>';
+        }
+
+        if (doi && doi_url) {
+            html += '<div><a class="DoiLink" href="' + htmlEscape(doi_url) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(doi) + '</a></div>';
+        }
+
+        if (acol_id) {
+            html += '<div class="SourceHoverCardSecondary">BAcol ID: ' + htmlEscape(acol_id) + '</div>';
+        }
+
+        return html;
+    }
+
+    function positionSourceHoverCard($target, $card) {
+        var offset = $target.offset();
+        var top = offset.top + $target.outerHeight() + 8;
+        var left = offset.left;
+        var max_left = $(window).scrollLeft() + $(window).width() - $card.outerWidth() - 12;
+
+        if (left > max_left) {
+            left = Math.max(12, max_left);
+        }
+
+        $card.css({
+            left: left + 'px',
+            top: top + 'px'
+        });
+    }
+
+    function showSourceHoverCard(target) {
+        var $target = $(target);
+        var $card = ensureSourceHoverCard();
+
+        clearTimeout(source_hover_timer);
+        $card.html(sourceHoverCardHtml($target)).attr('aria-hidden', 'false').addClass('is-visible');
+        positionSourceHoverCard($target, $card);
+    }
+
+    function hideSourceHoverCard() {
+        clearTimeout(source_hover_timer);
+        $('#SourceHoverCard').attr('aria-hidden', 'true').removeClass('is-visible');
+    }
+
+    function scheduleSourceHoverCardHide() {
+        clearTimeout(source_hover_timer);
+        source_hover_timer = setTimeout(hideSourceHoverCard, 120);
     }
 
     function openExploreModal() {
@@ -546,6 +696,26 @@ $(document).ready(function(){
 
     $('#ExploreTable').on('click', '.ExplorePlotButton', function() {
         loadExploreProcess($(this).attr('data-id'));
+    });
+
+    $('#ExploreTable, #ExploreSources').on('mouseenter focus', '.SourceHoverTarget', function() {
+        showSourceHoverCard(this);
+    });
+
+    $('#ExploreTable, #ExploreSources').on('mouseleave blur', '.SourceHoverTarget', function() {
+        scheduleSourceHoverCardHide();
+    });
+
+    $(document).on('mouseenter', '#SourceHoverCard', function() {
+        clearTimeout(source_hover_timer);
+    });
+
+    $(document).on('mouseleave', '#SourceHoverCard', function() {
+        hideSourceHoverCard();
+    });
+
+    $(window).on('scroll resize', function() {
+        hideSourceHoverCard();
     });
 
     $('.ExploreModalClose, .ExploreModalOverlay').click(function() {
