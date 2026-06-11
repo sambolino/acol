@@ -130,8 +130,8 @@ $(document).ready(function(){
             var full_label = row.title || row.full_title || label;
             var label_html = htmlEscape(label);
 
-            if (row.doi && row.doi_url) {
-                label_html += '<a class="DoiLink" href="' + htmlEscape(row.doi_url) + '" title="' + htmlEscape(full_label + ' — ' + row.doi_url) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(row.doi.toLowerCase().indexOf('doi:') === 0 ? row.doi : 'doi:' + row.doi) + '</a>';
+            if (row.doi_display && row.doi_url) {
+                label_html += '<a class="DoiLink" href="' + htmlEscape(row.doi_url) + '" title="' + htmlEscape(full_label + ' — ' + row.doi_url) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(row.doi_display) + '</a>';
             }
 
             html += '<div class="SimpleBarRow">';
@@ -380,13 +380,7 @@ $(document).ready(function(){
     }
 
     function doiText(source) {
-        var doi_text = source.doi || '';
-
-        if (doi_text && doi_text.toLowerCase().indexOf('doi:') !== 0) {
-            doi_text = 'doi:' + doi_text;
-        }
-
-        return doi_text;
+        return source.doi_display || '';
     }
 
     function sourceTooltip(source) {
@@ -400,7 +394,7 @@ $(document).ready(function(){
         if (source.doi_url) {
             parts.push(source.doi_url);
         }
-        if (source.acol_id) {
+        if (!source.doi_display && !source.title && source.acol_id) {
             parts.push(source.acol_id);
         }
         if (parts.length == 0) {
@@ -411,7 +405,7 @@ $(document).ready(function(){
 
     function sourceHoverAttrs(source) {
         return (
-            ' data-source-title="' + htmlEscape(source.title || source.display || source.acol_id || '') + '"' +
+            ' data-source-title="' + htmlEscape(source.title || '') + '"' +
             ' data-source-year="' + htmlEscape(source.year || '') + '"' +
             ' data-source-doi="' + htmlEscape(doiText(source)) + '"' +
             ' data-source-doi-url="' + htmlEscape(source.doi_url || '') + '"' +
@@ -420,7 +414,7 @@ $(document).ready(function(){
     }
 
     function renderDoiLink(source) {
-        if (!source.doi || !source.doi_url) {
+        if (!source.doi_display || !source.doi_url) {
             return '';
         }
 
@@ -430,7 +424,7 @@ $(document).ready(function(){
     function renderSourceSummary(source) {
         var html = '<span class="SourceSummary" data-acol-id="' + htmlEscape(source.acol_id) + '">';
 
-        if (source.doi && source.doi_url) {
+        if (source.doi_display && source.doi_url) {
             html += renderDoiLink(source);
         } else {
             var label = source.title_short || source.title || source.display || source.acol_id;
@@ -450,14 +444,14 @@ $(document).ready(function(){
     }
 
     function sourceHoverCardHtml($target) {
-        var title = $target.data('source-title') || 'Source';
+        var title = $target.data('source-title') || '';
         var year = $target.data('source-year');
         var doi = $target.data('source-doi');
         var doi_url = $target.data('source-doi-url');
         var acol_id = $target.data('source-acol-id');
         var html = '';
 
-        html += '<div class="SourceHoverCardTitle">' + htmlEscape(title) + '</div>';
+        html += '<div class="SourceHoverCardTitle">' + htmlEscape(title || 'Source') + '</div>';
 
         if (year) {
             html += '<div class="SourceHoverCardMeta">Year: ' + htmlEscape(year) + '</div>';
@@ -467,7 +461,7 @@ $(document).ready(function(){
             html += '<div><a class="DoiLink" href="' + htmlEscape(doi_url) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(doi) + '</a></div>';
         }
 
-        if (acol_id) {
+        if (!doi && !title && acol_id) {
             html += '<div class="SourceHoverCardSecondary">BAcol ID: ' + htmlEscape(acol_id) + '</div>';
         }
 

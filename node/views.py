@@ -138,11 +138,31 @@ def _shorten_text(value, max_length=72):
     return "%s..." % value[:max_length - 3].rstrip()
 
 
-def _doi_url(doi):
+def _normalize_doi(doi):
     doi = (doi or "").strip()
 
     if doi.lower().startswith("doi:"):
         doi = doi[4:].strip()
+
+    for prefix in ("https://doi.org/", "http://doi.org/"):
+        if doi.lower().startswith(prefix):
+            doi = doi[len(prefix):].strip()
+            break
+
+    return doi
+
+
+def _doi_display(doi):
+    doi = _normalize_doi(doi)
+
+    if not doi:
+        return ""
+
+    return "doi:%s" % doi
+
+
+def _doi_url(doi):
+    doi = _normalize_doi(doi)
 
     if not doi:
         return ""
@@ -151,7 +171,7 @@ def _doi_url(doi):
 
 
 def _source_to_dict(source):
-    doi = source.digital_object_id or ""
+    doi = _normalize_doi(source.digital_object_id)
     title = source.title or ""
     year = source.year or ""
     title_short = _shorten_text(title)
@@ -172,6 +192,7 @@ def _source_to_dict(source):
         "table_display": display,
         "year": year,
         "doi": doi,
+        "doi_display": _doi_display(doi),
         "doi_url": _doi_url(doi),
         "uri": source.uri or "",
         "title": title,
@@ -280,6 +301,7 @@ def _source_count_rows(source_counts):
             "title": data["title"],
             "title_short": data["title_short"],
             "doi": data["doi"],
+            "doi_display": data["doi_display"],
             "doi_url": data["doi_url"],
             "count": data["count"],
         })
@@ -351,6 +373,7 @@ def _overview_stats():
                     "title": source_data["title"] or source_text,
                     "title_short": source_data["title_short"],
                     "doi": source_data["doi"],
+                    "doi_display": source_data["doi_display"],
                     "doi_url": source_data["doi_url"],
                 }
 
