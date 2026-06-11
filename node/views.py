@@ -298,22 +298,41 @@ def _counter_to_sorted_rows(counter, key_name, value_name):
 
 
 
-def _overview_source_label(source_data):
-    title = source_data["title"]
-    doi = source_data["doi_display"] or source_data["doi"]
-    acol_id = source_data["acol_id"]
+def _shorten_overview_label(text, max_len=70):
+    text = (text or "").strip()
+
+    if len(text) <= max_len:
+        return text
+
+    return "%s…" % text[:max_len - 1].rstrip()
+
+
+def _source_overview_label(source):
+    title = (source.title or "").strip()
 
     if title:
-        full_label = title
-        short_label = _shorten_text(title, 64)
-    elif doi:
-        full_label = doi
-        short_label = _shorten_text(doi, 64)
-    else:
-        full_label = acol_id
-        short_label = acol_id
+        return _shorten_overview_label(title, 70)
 
-    return short_label, full_label
+    doi = (source.digital_object_id or "").strip()
+
+    if doi:
+        return doi
+
+    return source.acol_id()
+
+
+def _source_overview_full_label(source):
+    title = (source.title or "").strip()
+
+    if title:
+        return title
+
+    doi = (source.digital_object_id or "").strip()
+
+    if doi:
+        return doi
+
+    return source.acol_id()
 
 
 def _source_count_rows(source_counts):
@@ -391,14 +410,13 @@ def _overview_stats():
 
         for source in sources:
             source_data = _source_to_dict(source)
-            source_key = source_data["acol_id"]
-            source_label, source_full = _overview_source_label(source_data)
+            source_key = source.id
 
             if source_key not in source_dataset_counts:
                 source_dataset_counts[source_key] = {
                     "count": 0,
-                    "source": source_label,
-                    "source_full": source_full,
+                    "source": _source_overview_label(source),
+                    "source_full": _source_overview_full_label(source),
                     "title": source_data["title"],
                     "doi": source_data["doi"],
                     "doi_display": source_data["doi_display"],
@@ -410,6 +428,13 @@ def _overview_stats():
 
     for collision_type, collision_ids in seen_collision_ids_by_type.items():
         collisions_by_collision_type[collision_type] = len(collision_ids)
+
+    species_state_occurrences = _counter_to_sorted_rows(
+        species_occurrences,
+        "species",
+        "count"
+    )
+    papers_contributing_collision_data = _source_count_rows(source_dataset_counts)
 
     return {
         "summary": {
@@ -430,12 +455,10 @@ def _overview_stats():
             "collision_type",
             "count"
         ),
-        "top_species": _counter_to_sorted_rows(
-            species_occurrences,
-            "species",
-            "count"
-        )[:15],
-        "sources_by_dataset_count": _source_count_rows(source_dataset_counts),
+        "species_state_occurrences": species_state_occurrences,
+        "top_species": species_state_occurrences,
+        "papers_contributing_collision_data": papers_contributing_collision_data,
+        "sources_by_dataset_count": papers_contributing_collision_data,
     }
 
 
