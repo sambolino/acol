@@ -15,6 +15,9 @@ from node.forms import *
 
 logger = logging.getLogger()
 
+def json_response(data):
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
 def index(request):
     """Render main UI page with search and plotting forms."""
     t = get_template('main.html')
@@ -75,6 +78,116 @@ def get_temps(request, coll_iaea_code, atom_inchi):
         temps_dict[i] = t
     #return HttpResponse(json.dumps(species_dict), mimetype="application/json")
     return HttpResponse(json.dumps(temps_dict))
+
+def source_to_dict(source):
+    return {
+        "id": source.id,
+        "source_id": source.source_id or "",
+        "acol_id": source.acol_id(),
+        "text": str(source),
+        "year": source.year or "",
+        "doi": source.digital_object_id or "",
+        "uri": source.uri or "",
+        "title": source.title or "",
+    }
+
+
+def sources_for_collision(collision):
+    sources = []
+
+    for datasource in collision.data_sources.all():
+        for source in datasource.sources.all():
+            sources.append(source)
+
+    seen = set()
+    result = []
+
+    for source in sources:
+        if source.id not in seen:
+            seen.add(source.id)
+            result.append(source)
+
+    return result
+
+
+def tabdata_to_explore_row(tabdata, include_values=False):
+    collision = tabdata.collision
+    x_axis = tabdata.first_x()
+    y_axis = tabdata.first_y()
+
+    sources = sources_for_collision(collision) if collision else []
+
+    row = {
+        "id": tabdata.id,
+        "title": str(tabdata),
+
+        "collision_id": collision.id if collision else None,
+        "collision": str(collision) if collision else "",
+        "collision_type": collision.collision_type.iaea_code if collision else "",
+        "collision_type_name": str(collision.collision_type) if collision else "",
+
+        "reaction": collision.reaction_string() if collision else "",
+        "reactants": collision.reactant_strings() if collision else [],
+        "products": collision.product_strings() if collision else [],
+
+        "x": str(x_axis) if x_axis else "",
+        "x_parameter": x_axis.parameter if x_axis else "",
+        "x_unit": x_axis.unit if x_axis else "",
+        "x_range": x_axis.endpoint_string() if x_axis else "",
+        "x_axis": x_axis.axis_string() if x_axis else "",
+
+        "y": str(y_axis) if y_axis else "",
+        "y_parameter": y_axis.parameter if y_axis else "",
+        "y_unit": y_axis.unit if y_axis else "",
+        "y_range": y_axis.minmax_string() if y_axis else "",
+        "y_axis": y_axis.axis_string() if y_axis else "",
+
+        "sources": [source_to_dict(source) for source in sources],
+    }
+
+    if include_values:
+        row.update({
+            "x_values": x_axis.values_as_floats() if x_axis else [],
+            "y_values": y_axis.values_as_floats() if y_axis else [],
+        })
+
+    return row
+
+
+def explore_processes(request):
+    tabdatas = TabulatedData.objects.all().select_related(
+        'collision',
+        'collision__collision_type'
+    ).prefetch_related(
+        'x',
+        'y',
+        'collision__reactants',
+        'collision__reactants__species',
+        'collision__products',
+        'collision__products__species',
+        'collision__data_sources',
+        'collision__data_sources__sources'
+    )
+
+    rows = []
+
+    for tabdata in tabdatas:
+        if tabdata.collision:
+            rows.append(tabdata_to_explore_row(tabdata))
+
+    return json_response({
+        "count": len(rows),
+        "rows": rows,
+    })
+
+
+def explore_process_data(request, tabdata_id):
+    tabdata = get_object_or_404(TabulatedData, pk=tabdata_id)
+
+    return json_response(
+        tabdata_to_explore_row(tabdata, include_values=True)
+    )
+
 
 def plot(request, coll_iaea_code, atom_inchi, temperature_index):
     """Generate a plot image and return filename with plotted arrays as JSON."""
