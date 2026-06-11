@@ -33,7 +33,7 @@
          </tr>
       </table>
 	</div>
-    
+
 	<div id="wrapper">
     <div id="tabs">
       <ul>
@@ -133,18 +133,34 @@
       </tbody>
     </table>
 
-    <div id="ExploreDetail">
-      <h3 id="ExploreTitle">Select a process</h3>
-      <div id="ExploreSources"></div>
-      <div id="ExplorePlot"></div>
-      <div id="ExploreRaw"></div>
-    </div>
-
   </div>
 </div>
     </div>
 	</div>
-	    
+
+  <div id="ExploreModal" class="ExploreModal" aria-hidden="true">
+    <div class="ExploreModalOverlay"></div>
+    <div class="ExploreModalDialog" role="dialog" aria-modal="true" aria-labelledby="ExploreModalTitle">
+      <button type="button" class="ExploreModalClose" aria-label="Close explore details">&times;</button>
+      <h3 id="ExploreModalTitle">Process details</h3>
+      <div id="ExploreModalStatus" class="ExploreModalStatus"></div>
+      <div id="ExploreModalContent" class="ExploreModalContent">
+        <section class="ExploreModalSection">
+          <h4>Plot</h4>
+          <div id="ExplorePlot"></div>
+        </section>
+        <section class="ExploreModalSection">
+          <h4>Sources</h4>
+          <div id="ExploreSources"></div>
+        </section>
+        <section class="ExploreModalSection">
+          <h4>Raw x/y data</h4>
+          <div id="ExploreRaw"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
 	<div id="footer">
     <div id="citation"><h3></h3>
       <p>This service is developed in stages during short term scientific missions supported by <a href='http://www.cost.eu'><b>COST<b></a></p>

@@ -284,29 +284,47 @@ $(document).ready(function(){
             html += '<td>' + htmlEscape(row.x_range + ' ' + row.x_unit) + '</td>';
             html += '<td>' + htmlEscape(row.y_range + ' ' + row.y_unit) + '</td>';
             html += '<td class="ExploreSourceCell">' + htmlEscape(source_labels.join(', ')) + '</td>';
-            html += '<td><button class="ExplorePlotButton" data-id="' + row.id + '">plot</button></td>';
+            html += '<td><button type="button" class="ExplorePlotButton" data-id="' + row.id + '">Plot/details</button></td>';
             html += '</tr>';
         }
 
         $('#ExploreTable tbody').html(html);
     }
 
+    function openExploreModal() {
+        $('#ExploreModal').attr('aria-hidden', 'false').addClass('is-open');
+        $('body').addClass('ExploreModalOpen');
+        $('.ExploreModalClose').focus();
+    }
+
+    function closeExploreModal() {
+        $('#ExploreModal').attr('aria-hidden', 'true').removeClass('is-open');
+        $('body').removeClass('ExploreModalOpen');
+    }
+
+    function renderExploreModalContent(data) {
+        $('#ExploreModalTitle').html(
+            htmlEscape(data.collision_type_name + ': ' + data.reaction)
+        );
+        $('#ExploreModalStatus').html('');
+        $('#ExploreSources').html(renderExploreSources(data));
+        $('#ExplorePlot').html(renderExploreSvgPlot(data));
+        $('#ExploreRaw').html(renderExploreRawTable(data));
+    }
+
     function loadExploreProcess(tabdata_id) {
-        $('#ExploreTitle').html('Loading...');
+        $('#ExploreModalTitle').html('Loading process details...');
+        $('#ExploreModalStatus').html('Fetching plot, sources, and raw x/y data.');
         $('#ExploreSources').html('');
         $('#ExplorePlot').html('');
         $('#ExploreRaw').html('');
+        openExploreModal();
 
         $.getJSON(base_url + '/explore/process/' + tabdata_id + '/', function(data) {
-            $('#ExploreTitle').html(
-                htmlEscape(data.collision_type_name + ': ' + data.reaction)
-            );
-
-            renderExploreSources(data);
-            renderExploreSvgPlot(data);
-            renderExploreRawTable(data);
+            renderExploreModalContent(data);
         }).fail(function() {
-            $('#ExploreTitle').html('Could not load process.');
+            $('#ExploreModalTitle').html('Could not load process.');
+            $('#ExploreModalStatus').html('Please close this window and try again.');
         });
     }
 
@@ -338,9 +356,11 @@ $(document).ready(function(){
             }
 
             html += '</ul>';
+        } else {
+            html = 'No source metadata available.';
         }
 
-        $('#ExploreSources').html(html);
+        return html;
     }
 
     function renderExploreSvgPlot(data) {
@@ -348,8 +368,7 @@ $(document).ready(function(){
         var y = data.y_values;
 
         if (!x || !y || x.length == 0 || y.length == 0) {
-            $('#ExplorePlot').html('No plottable data.');
-            return;
+            return 'No plottable data.';
         }
 
         var n = Math.min(x.length, y.length);
@@ -395,13 +414,13 @@ $(document).ready(function(){
         var y_label = data.y_axis || data.y_parameter;
 
         var svg = '';
-        svg += '<svg width="' + width + '" height="' + height + '" class="explore-svg">';
+        svg += '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '" class="explore-svg">';
         svg += '<line x1="' + left + '" y1="' + top + '" x2="' + left + '" y2="' + (height - bottom) + '" stroke="#333" />';
         svg += '<line x1="' + left + '" y1="' + (height - bottom) + '" x2="' + (width - right) + '" y2="' + (height - bottom) + '" stroke="#333" />';
-        svg += '<polyline fill="none" stroke="#aa0000" stroke-width="2" points="' + points.join(' ') + '" />';
+        svg += '<polyline fill="none" stroke="#8f2334" stroke-width="2" points="' + points.join(' ') + '" />';
 
         for (var j = 0; j < n; j++) {
-            svg += '<circle cx="' + sx(x[j]) + '" cy="' + sy(y[j]) + '" r="2" fill="#aa0000">';
+            svg += '<circle cx="' + sx(x[j]) + '" cy="' + sy(y[j]) + '" r="2.5" fill="#8f2334">';
             svg += '<title>' + htmlEscape(x_label + ': ' + x[j] + ', ' + y_label + ': ' + y[j]) + '</title>';
             svg += '</circle>';
         }
@@ -417,7 +436,7 @@ $(document).ready(function(){
 
         svg += '</svg>';
 
-        $('#ExplorePlot').html(svg);
+        return svg;
     }
 
     function renderExploreRawTable(data) {
@@ -427,6 +446,10 @@ $(document).ready(function(){
 
         var x_label = data.x_axis || data.x_parameter;
         var y_label = data.y_axis || data.y_parameter;
+
+        if (n == 0) {
+            return 'No raw x/y data available.';
+        }
 
         var html = '';
         html += '<table id="ExploreRawTable">';
@@ -445,7 +468,7 @@ $(document).ready(function(){
 
         html += '</tbody></table>';
 
-        $('#ExploreRaw').html(html);
+        return html;
     }
 
     $('#ExploreCollisionType').change(function() {
@@ -462,6 +485,16 @@ $(document).ready(function(){
 
     $('#ExploreTable').on('click', '.ExplorePlotButton', function() {
         loadExploreProcess($(this).attr('data-id'));
+    });
+
+    $('.ExploreModalClose, .ExploreModalOverlay').click(function() {
+        closeExploreModal();
+    });
+
+    $(document).keyup(function(event) {
+        if (event.keyCode == 27 && $('#ExploreModal').hasClass('is-open')) {
+            closeExploreModal();
+        }
     });
 
     loadExploreData();

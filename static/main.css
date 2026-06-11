@@ -1,470 +1,350 @@
-	* {
-	margin:0;
-	padding:0;
-	}
-
-	p {
-	color: black;
-	}
-	
-   h1 {
-      color: #892339;
-      font-size: 55px;
-      font-family: Calibri;
-   }
-
-	h3 {
-	color: #000;
-	}
-	
-	h2 {
-	#padding-left: 110px;
-	margin: 0 auto;
-	color: #892339;
-	}
-	
-	body {
-	background: #ffffff;
-	font-family: Calibri;
-	color: black;
-	}
-
-	/*select{
-		padding-left: 50px;
-	}*/
-	
-	#header {
-	width: 100%;
-   text-align: left;
-	#height: 150px;
-	background: #FFFFFF;
-	border-bottom: 2px #892339 solid;
-	}
-	
-	#header_content{
-	position: relative;
-	#width: 740px;
-	margin: 0 auto;
-	
-	}
-	
-	#header_content img{
-	#position: absolute;
-	#top: 6px;
-	#right:5px;
-	}
-	
-	#footer_content h3{
-	position: inherit;
-	font-family: Calibri;
-	color: #892339;
-	}
-	
-	#footer_content h3 a {
-	font-family: Calibri;
-	color: #FFFFFF;
-	}
-
-  #footer {
-    margin: 10px 0;
-  }
-
-  #footer div#citation {
-  font-size:11px;
-  width : 650px;
-  float:left;
-  }
-
-	
-	a, a:visited {
-            color: #892339;
-      font-family: Calibri;
-	text-decoration:none;
-	}
-	
-	a:hover {
-            color: #892339;
-      font-family: Calibri;
-	text-decoration:underline;
-	}
-	
-	#wrapper {
-	padding-left: 0px;
-	/*padding-right: 215px;*/
-	position: static;
-	vertical-align: center;
-	/*width: 900px;*/
-	margin: 0 auto;
-
-	/*overflow: hidden;*/
-	}
-	
-/*	h1{
-	#margin-top: 6px;
-	color: #FFFFFF;
-	}*/
-	
-	h1 span{
-	color:#892339;
-	}
-	
-	#footer {
-	width: 100%;
-	#height: 145px;
-	background: #FFFFFF;
-	/*border-top: 2px #892339 solid;*/
-	}
-	
-	#footer_content {
-	position: relative;
-	width: 740px;
-	margin: 0 auto;
-	padding: 5px;
-	
-	}
-	
-	#footer_content p{
-	position: absolute;
-	right:15px;
-	}
-		
-/*	div.selectBox {
-	z-index:0;
-	position: relative;
-	display:inline-block;
-	cursor:default;
-	text-align:left;
-	line-height:30px;
-	clear:both;
-	color:#888;
-}	*/
-/*span.selected {
-    width:167px;
-    text-indent:20px;
-    border:1px solid #ccc;
-    border-right:none;
-    border-top-left-radius:5px;
-    border-bottom-left-radius:5px;
-    background:#f6f6f6;
-    overflow:hidden;
+/* =========================================================
+   Base layout
+   ========================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
-span.selectArrow {
-    width:30px;
-    border:1px solid #60abf8;
-    border-top-right-radius:5px;
-    border-bottom-right-radius:5px;
-    text-align:center;
-    font-size:20px;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-    background:#4096ee;
+
+html,
+body {
+    min-height: 100%;
 }
-span.selectArrow,span.selected{
-    position:relative;
-    float:left;
-    height:24px;  
+
+body {
+    background: #f7f7f5;
+    color: #202124;
+    font-family: Calibri, Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    padding-bottom: 92px;
 }
-div.selectOptions{	
-	z-index:1;
-	overflow: auto;
-	display: none;
-	position: absolute;
-    top:22px;
-    left: 0;
-    width:198px;
-    border:1px solid #ccc;
-    border-bottom-right-radius:5px;
-    border-bottom-left-radius:5px;
-    background:#f6f6f6;
-    padding-top:2px;
+
+body.ExploreModalOpen {
+    overflow: hidden;
 }
-span.selectOption {
-    display:block;
-    width:80%;
-    line-height:10px;
-    padding:5px 10%;
+
+p {
+    color: #202124;
+    margin: 0 0 0.7rem;
 }
-span.selectOption:hover {
-    color:#f6f6f6;
-    background:#4096ee;         
-}        	*/
-label{
+
+h1,
+h2,
+h3,
+h4 {
+    color: #2a2f36;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+h1 {
     color: #892339;
+    font-size: 42px;
+}
+
+h2 {
+    color: #892339;
+    margin: 0 auto;
+}
+
+h3 {
+    font-size: 18px;
+}
+
+h4 {
+    color: #555f69;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+a,
+a:visited {
+    color: #892339;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #6f1d30;
+    text-decoration: underline;
+}
+
+#header {
+    background: #ffffff;
+    border-bottom: 2px solid #892339;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    padding: 10px 18px;
+    text-align: left;
+    width: 100%;
+}
+
+#header img {
+    height: auto;
+    max-width: 100%;
+}
+
+#wrapper {
+    margin: 18px auto 26px;
+    max-width: 1220px;
+    padding: 0 18px;
+    position: static;
+}
+
+#results {
+    margin-bottom: 80px;
+    width: 95%;
+}
+
+#footer {
+    background: #ffffff;
+    border-top: 1px solid #ddd6d2;
+    bottom: 0;
+    clear: both;
+    left: 0;
+    line-height: normal;
+    margin: 0;
+    padding: 8px 14px;
+    position: fixed;
+    text-align: center;
+    vertical-align: middle;
+    width: 100%;
+    z-index: 20;
+}
+
+#footer div#citation {
+    float: left;
+    font-size: 11px;
+    max-width: 650px;
+    text-align: left;
+}
+
+#footer img {
+    max-height: 52px;
+    max-width: 45%;
+}
+
+/* =========================================================
+   Tabs
+   ========================================================= */
+#tabs {
+    background: #ffffff;
+    border: 1px solid #d8dadd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(35, 40, 45, 0.07);
+    padding: 0;
+}
+
+#tabs > ul.ui-tabs-nav {
+    background: #f0efed;
+    border: 0;
+    border-bottom: 1px solid #d8dadd;
+    border-radius: 4px 4px 0 0;
+    padding: 8px 8px 0;
+}
+
+#tabs .ui-tabs-panel {
+    padding: 18px;
+}
+
+#tabs .ui-tabs-nav li a {
+    color: #38404a;
+    padding: 0.55em 1em;
+}
+
+#tabs .ui-tabs-nav li.ui-tabs-active a {
+    color: #892339;
+    font-weight: 600;
+}
+
+/* =========================================================
+   Forms
+   ========================================================= */
+label {
+    color: #5a2c38;
     display: block;
     float: left;
     margin-right: 20px;
     margin-top: 6px;
     text-align: right;
     width: 200px;
-	}	
-fieldset {	
-	margin: 0 auto;
-	background: #FFFFFF;
-	border: 2px solid #4096ee;
-	width: 500px;
-	padding: 10px;
-	 }
+}
+
+fieldset {
+    background: #ffffff;
+    border: 1px solid #c8d2dc;
+    border-radius: 4px;
+    margin: 0 auto;
+    padding: 12px;
+    width: 500px;
+}
+
+input[type="text"],
+select {
+    background: #ffffff;
+    border: 1px solid #bfc7cf;
+    border-radius: 3px;
+    color: #202124;
+    font-family: inherit;
+    font-size: 13px;
+    min-height: 30px;
+    padding: 5px 7px;
+}
+
 input[type="text"] {
-//    border-color: #4096EE;
     margin: 5px 0;
-    padding: 3px 5px;
     width: 40px;
-	}
-input[type="submit"] {
-    border-color: #4096EE;
-    cursor: pointer;
-    margin: 5px 0 5px 220px;
-    padding: 3px 5px;
-	}
-input[type="submit"]:hover {
-	background: #4096ee;
 }
-#SumHolder, #PlotHolder {
-  margin-left: 100px;
-  margin-top: 12px;
-  margin-bottom:60px;
-}
-#SumHolder.error, #PlotHolder.error {
-  color: red;
-  font-size: 12px;
-  font-weight: bold;
-}
-#SumHolder.result {
-  font-size: 14px;
-  margin-left: 220px;
-}
-#PlotHolder.result {
-  margin-left: 0;
-}
-#SumHolder.calculating, #PlotHolder.calculating {
-  font-size: 10px;
+
+select:focus,
+input[type="text"]:focus {
+    border-color: #8e5463;
+    box-shadow: 0 0 0 2px rgba(137, 35, 57, 0.12);
+    outline: none;
 }
 
 .styled-select {
-   width: 900px;
-   margin: 20px auto;
-   
+    margin: 20px auto;
+    max-width: 900px;
+    width: 100%;
 }
 
 .styled-select ul {
-   list-style-type:none;
-   list-style:none;
+    list-style: none;
 }
 
-.styled-select  li {
-   margin-bottom:10px;
-}
-
-.styled-select select {
-   background: #FFFFFF;
-   width: 268px;
-   padding: 2px;
-   font-size: 12px;
-   border: 2px solid #ccc;
-   height: 30px;
-   padding-left: 5px;
-   text-align: center;
-}
-
-.styled-select select:disabled {
-   background: #DFDFDF;
-}
-
-#results {
-   margin-bottom:80px; 
-   width:95%;
-}
-
-
-#footer
-{
-    clear: both;
-    /*top-border: 2px #892339 solid;*/
-    background: white;
-    #color: White;
-    padding: 0;
-    text-align: center;
-    vertical-align: middle;
-    line-height: normal;
-    margin: 0;
-    position: fixed;
-    bottom: 0px;
-    width: 100%;
-}
-
-#PlotHolder table {
-      border: 1px solid black;
-      margin: 29px 0 85px;
-      font-size: 11px;
-      /*float: right;*/
-      border-collapse: collapse;
-}
-
-#PlotHolder table td {
-      padding: 3px 4px;
-      /*border: 1px dotted black;*/
-    }
-
-#PlotHolder table tr:nth-child(even) {background-color: #f2f2f2}
-
-.resultCell {
-    border-right: 1px solid black;
-}
-
-#ExploreHolder {
-    padding: 10px;
-}
-
-#ExploreSummary {
-    margin-bottom: 12px;
-    padding: 8px;
-    background: #eeeeee;
-    border: 1px solid #cccccc;
-}
-
-#ExploreFilters {
-    margin-bottom: 12px;
-}
-
-#ExploreFilters label {
-    margin-right: 20px;
-}
-
-#ExploreSpeciesText {
-    width: 180px;
-}
-
-#ExploreTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-#ExploreTable th,
-#ExploreTable td {
-    border: 1px solid #cccccc;
-    padding: 5px 7px;
-    vertical-align: top;
-}
-
-#ExploreTable th {
-    background: #eeeeee;
-}
-
-#ExploreDetail {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 2px solid #dddddd;
-}
-
-#ExploreSources {
-    font-size: 90%;
+.styled-select li {
     margin-bottom: 10px;
 }
 
-.explore-svg {
-    background: #ffffff;
-    border: 1px solid #cccccc;
-    margin-bottom: 12px;
+.styled-select select {
+    height: 30px;
+    padding-left: 5px;
+    text-align: center;
+    width: 268px;
 }
 
-#ExploreRawTable {
-    border-collapse: collapse;
-    margin-top: 10px;
+.styled-select select:disabled {
+    background: #e8e8e8;
+    color: #7c7c7c;
 }
 
-#ExploreRawTable th,
-#ExploreRawTable td {
-    border: 1px solid #cccccc;
-    padding: 4px 7px;
+#SumHolder,
+#PlotHolder {
+    margin-bottom: 60px;
+    margin-left: 100px;
+    margin-top: 12px;
 }
 
+#SumHolder.error,
+#PlotHolder.error {
+    color: #b00020;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#SumHolder.result {
+    font-size: 14px;
+    margin-left: 220px;
+}
+
+#PlotHolder.result {
+    margin-left: 0;
+}
+
+#SumHolder.calculating,
+#PlotHolder.calculating {
+    color: #555f69;
+    font-size: 12px;
+}
+
+/* =========================================================
+   Overview/statistics tab
+   ========================================================= */
 #OverviewHolder {
-    padding: 10px;
+    padding: 4px;
+}
+
+#OverviewSummary {
+    margin-bottom: 18px;
 }
 
 .OverviewCards {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 18px;
+    gap: 12px;
 }
 
 .OverviewCard {
-    min-width: 120px;
-    padding: 12px;
-    border: 1px solid #cccccc;
-    background: #eeeeee;
-    text-align: center;
+    background: #fbfbfa;
+    border: 1px solid #ddd6d2;
+    border-left: 3px solid #892339;
+    border-radius: 4px;
+    min-width: 128px;
+    padding: 12px 14px;
+    text-align: left;
 }
 
 .OverviewCardValue {
-    font-size: 24px;
+    color: #303842;
+    font-size: 25px;
     font-weight: bold;
 }
 
 .OverviewCardLabel {
+    color: #66717c;
     font-size: 12px;
-    color: #555555;
+    margin-top: 2px;
 }
 
 .OverviewCharts {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .OverviewChartBox {
-    border: 1px solid #cccccc;
-    padding: 10px;
     background: #ffffff;
+    border: 1px solid #d8dadd;
+    border-radius: 4px;
+    padding: 14px;
 }
 
 .OverviewChartBox h3 {
-    margin-top: 0;
+    border-bottom: 1px solid #ececeb;
+    font-size: 16px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
 }
 
-.SimpleBarChart {
-    width: 100%;
+/* =========================================================
+   Explore data tab
+   ========================================================= */
+#ExploreHolder {
+    padding: 4px;
 }
 
-.SimpleBarRow {
-    display: grid;
-    grid-template-columns: 180px 1fr 40px;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 6px;
+#ExploreSummary {
+    background: #f4f1ef;
+    border: 1px solid #ddd6d2;
+    border-radius: 4px;
+    color: #3f464e;
+    margin-bottom: 14px;
+    padding: 10px 12px;
 }
-
-.SimpleBarLabel {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.SimpleBarOuter {
-    height: 12px;
-    background: #eeeeee;
-    border: 1px solid #cccccc;
-}
-
-.SimpleBarInner {
-    height: 12px;
-    background: #777777;
-}
-
-.SimpleBarValue {
-    text-align: right;}
 
 #ExploreFilters {
+    align-items: flex-end;
+    background: #fbfbfa;
+    border: 1px solid #d8dadd;
+    border-radius: 4px;
     display: flex;
     flex-wrap: wrap;
     gap: 14px 22px;
-    align-items: flex-end;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
 }
 
 .ExploreFilterItem {
@@ -473,17 +353,16 @@ input[type="submit"]:hover {
 }
 
 .ExploreFilterItem label {
+    color: #555f69;
+    float: none;
     font-size: 12px;
-    color: #555555;
-    margin-bottom: 3px;
+    margin: 0 0 4px;
+    text-align: left;
+    width: auto;
 }
 
 #ExploreCollisionType {
     width: 230px;
-}
-
-.ExploreSpeciesFilterItem {
-    margin-left: 20px;
 }
 
 #ExploreSpeciesText {
@@ -491,11 +370,297 @@ input[type="submit"]:hover {
 }
 
 #ExploreSource {
-    width: 160px;
+    width: 170px;
 }
 
 .ExploreSourceCell {
-    max-width: 260px;
-    word-break: break-word;
+    color: #3f464e;
     font-size: 90%;
+    max-width: 300px;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+/* =========================================================
+   Tables
+   ========================================================= */
+table {
+    border-collapse: collapse;
+}
+
+#ExploreTable,
+#ExploreRawTable,
+#PlotHolder table {
+    width: 100%;
+}
+
+#ExploreTable {
+    background: #ffffff;
+    border: 1px solid #d8dadd;
+    margin-bottom: 10px;
+}
+
+#ExploreTable th,
+#ExploreTable td,
+#ExploreRawTable th,
+#ExploreRawTable td,
+#PlotHolder table td {
+    border: 1px solid #d8dadd;
+    padding: 7px 9px;
+    vertical-align: top;
+}
+
+#ExploreTable th,
+#ExploreRawTable th {
+    background: #f0efed;
+    color: #38404a;
+    font-weight: 600;
+    text-align: left;
+}
+
+#ExploreTable tbody tr:nth-child(even),
+#ExploreRawTable tbody tr:nth-child(even),
+#PlotHolder table tr:nth-child(even) {
+    background: #fafafa;
+}
+
+#ExploreTable tbody tr:hover {
+    background: #f6f1f2;
+}
+
+#ExploreRaw {
+    max-height: 240px;
+    overflow: auto;
+}
+
+#ExploreRawTable {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+#PlotHolder table {
+    border: 1px solid #d8dadd;
+    font-size: 11px;
+    margin: 18px 0 85px;
+}
+
+.resultCell {
+    border-right: 1px solid #9ea6af;
+}
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+button,
+input[type="submit"] {
+    background: #892339;
+    border: 1px solid #751d30;
+    border-radius: 3px;
+    color: #ffffff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.2;
+    padding: 6px 12px;
+}
+
+input[type="submit"] {
+    margin: 5px 0 5px 220px;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background: #752033;
+}
+
+button:focus,
+input[type="submit"]:focus {
+    box-shadow: 0 0 0 2px rgba(137, 35, 57, 0.22);
+    outline: none;
+}
+
+.ExplorePlotButton {
+    white-space: nowrap;
+}
+
+/* =========================================================
+   Modal
+   ========================================================= */
+.ExploreModal {
+    display: none;
+}
+
+.ExploreModal.is-open {
+    display: block;
+}
+
+.ExploreModalOverlay {
+    background: rgba(31, 35, 40, 0.52);
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.ExploreModalDialog {
+    background: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+    left: 50%;
+    max-height: 88vh;
+    max-width: 920px;
+    overflow: auto;
+    padding: 18px 20px 20px;
+    position: fixed;
+    top: 6vh;
+    transform: translateX(-50%);
+    width: calc(100% - 48px);
+    z-index: 1001;
+}
+
+.ExploreModalClose {
+    background: #f4f1ef;
+    border: 1px solid #d2cac5;
+    color: #38404a;
+    float: right;
+    font-size: 22px;
+    height: 32px;
+    line-height: 1;
+    padding: 2px 9px 5px;
+}
+
+.ExploreModalClose:hover {
+    background: #e9e3df;
+}
+
+#ExploreModalTitle {
+    color: #2a2f36;
+    margin: 0 42px 8px 0;
+    overflow-wrap: anywhere;
+}
+
+.ExploreModalStatus {
+    color: #66717c;
+    margin-bottom: 10px;
+}
+
+.ExploreModalContent {
+    clear: both;
+    display: grid;
+    gap: 14px;
+}
+
+.ExploreModalSection {
+    border-top: 1px solid #ececeb;
+    padding-top: 12px;
+}
+
+#ExploreSources {
+    color: #38404a;
+    font-size: 90%;
+}
+
+#ExploreSources ul {
+    margin-left: 18px;
+}
+
+#ExploreSources li {
+    margin-bottom: 6px;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   Simple charts
+   ========================================================= */
+.SimpleBarChart {
+    width: 100%;
+}
+
+.SimpleBarRow {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(130px, 180px) 1fr 42px;
+    margin-bottom: 7px;
+}
+
+.SimpleBarLabel {
+    color: #38404a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SimpleBarOuter {
+    background: #eeeeee;
+    border: 1px solid #d8dadd;
+    border-radius: 8px;
+    height: 12px;
+    overflow: hidden;
+}
+
+.SimpleBarInner {
+    background: #697985;
+    height: 12px;
+}
+
+.SimpleBarValue {
+    color: #555f69;
+    font-size: 12px;
+    text-align: right;
+}
+
+.explore-svg {
+    background: #ffffff;
+    border: 1px solid #d8dadd;
+    border-radius: 3px;
+    display: block;
+    height: auto;
+    margin: 0 auto 8px;
+    max-width: 100%;
+}
+
+/* =========================================================
+   Utility classes
+   ========================================================= */
+.clearfix:after {
+    clear: both;
+    content: "";
+    display: table;
+}
+
+@media (max-width: 840px) {
+    #header table,
+    #header tbody,
+    #header tr,
+    #header td {
+        display: block;
+        text-align: center;
+        width: 100% !important;
+    }
+
+    .OverviewCharts {
+        grid-template-columns: 1fr;
+    }
+
+    .SimpleBarRow {
+        grid-template-columns: 1fr;
+    }
+
+    label {
+        float: none;
+        text-align: left;
+        width: auto;
+    }
+
+    input[type="submit"] {
+        margin-left: 0;
+    }
+
+    #SumHolder,
+    #PlotHolder {
+        margin-left: 0;
+    }
 }
