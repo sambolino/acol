@@ -1,7 +1,9 @@
+# encoding: utf-8
 import re
 from django.db import models
 from polymorphic.models import PolymorphicModel
 from django.utils import timezone
+
 
 class Species(PolymorphicModel):
     """Base chemical species shared by atom and molecule specializations."""
@@ -13,18 +15,24 @@ class Species(PolymorphicModel):
     ion_charge = models.IntegerField(default=0)
     cas = models.CharField(max_length=128, null=True, blank=True)
     nuclear_charge = models.CharField(max_length=32, null=True, blank=True)
-    molecular_weight = models.FloatField(null=True, blank=True, error_messages={'invalid':"Please enter a valid float number"})
+    molecular_weight = models.FloatField(null=True, blank=True, error_messages={'invalid': "Please enter a valid float number"})
+
+    def formula(self):
+        return self.stoichiometric_formula or self.chemical_formula or self.name
+
     def __str__(self):
-        return "%s: %s" % (self.name, self.stoichiometric_formula or self.chemical_formula)
+        return "%s" % self.formula()
+
     def __unicode__(self):
-        return "%s: %s" % (self.name, self.stoichiometric_formula or self.chemical_formula)
+        return self.__str__()
+
     class Meta:
         db_table = u'species'
 
 class Molecule(Species):
     """Molecular species with helper for XSAMS-friendly formula rendering."""
 
-    #code taken from wadis node
+    # code taken from wadis node
     def getLatexFormula(self):
         # See http://www.physicsforums.com/misc/howtolatex.pdf
         # See http://vamdc.org/documents/standards/dataModel/vamdcxsams/speciesMolecules.html#molecule
@@ -32,36 +40,33 @@ class Molecule(Species):
         if self.chemical_formula is None:
             return None
 
-
         def setSubSup(matchObj):
-            str = ''
+            str_ = ''
             if matchObj.group(2):
                 s = matchObj.group(2)
                 if int(s) > 1:
-                    str += "^" + ("{%s}" % s if len(s) > 1 else s)
-            str += matchObj.group(3)
+                    str_ += "^" + ("{%s}" % s if len(s) > 1 else s)
+            str_ += matchObj.group(3)
             if matchObj.group(4):
                 s = matchObj.group(4)
                 if int(s) > 1:
-                    str += "_" + ("{%s}" % s if len(s) > 1 else s)
-            return str
-
+                    str_ += "_" + ("{%s}" % s if len(s) > 1 else s)
+            return str_
 
         def setPlusMinus(matchObj):
-            str = ''
+            str_ = ''
             if matchObj.group(1):
                 s = matchObj.group(1)
                 if int(s) > 1:
-                    str += s
+                    str_ += s
             if matchObj.group(2):
                 s = matchObj.group(2)
                 if s == 'plus':
-                    str += '+'
+                    str_ += '+'
                 elif s == 'minus':
-                    str += '-'
-            str = "^" + ("{%s}" % str if len(str) > 1 else str)
-            return str
-
+                    str_ += '-'
+            str_ = "^" + ("{%s}" % str_ if len(str_) > 1 else str_)
+            return str_
 
         latexFormula = self.chemical_formula
         latexFormula = re.sub(r"(_(\d+))?([A-Z][a-z]*)(\d*)", setSubSup, latexFormula)
@@ -71,6 +76,7 @@ class Molecule(Species):
     class Meta:
         db_table = u'molecules'
         verbose_name_plural = 'Molecules'
+
 
 class Atom(Species):
     """Atomic species with local XSAMS XML override for ion/state hierarchy."""
@@ -197,7 +203,6 @@ class Atom(Species):
 
         xml.append("<Isotope>")
 
-        #amn = G("AtomMassNumber")
         has_mass_data = getattr(self, "HasMassData", False)
 
         if has_mass_data:
@@ -225,49 +230,93 @@ class Atom(Species):
         db_table = u'atoms'
         verbose_name_plural = 'Atoms'
 
+
 class SpeciesState(PolymorphicModel):
     """Base state model linked to a species instance."""
     description = models.CharField(max_length=256, null=True, blank=True)
     species = models.ForeignKey(Species, on_delete=models.CASCADE)
+
+    def _get_description(self):
+        return self.description or ""
+
     def __str__(self):
-        return "%s - %s" % (self.species.name, self._get_description() )
+        species_text = str(self.species)
+        description = self._get_description()
+
+        if description:
+            return "%s (%s)" % (species_text, description)
+
+        return species_text
+
     def __unicode__(self):
-        return "%s - %s" % (self.species.name, self._get_description() )
+        return self.__str__()
+
     class Meta:
         db_table = u'speciesstates'
+
 
 class AtomicState(SpeciesState):
     """Atomic electronic state identified here by principal quantum number."""
     qn = models.PositiveSmallIntegerField(null=True, blank=True)
+
     def _get_description(self):
-        if (self.description==None or self.description==''):
-            return "qn: %s" % (self.qn)
-        else:
-            return self.description
+        if self.description:
+            desc = self.description.strip()
+
+            # Ground state is usually noise in compact reaction tables.
+            if desc.lower() == "ground state":
+                return ""
+
+            return desc
+
+        if self.qn is not None:
+            return "n=%s" % self.qn
+
+        return ""
+
     class Meta:
         db_table = u'atomicstates'
 
+
 class MolecularState(SpeciesState):
     """Molecular state placeholder (description is currently the key field)."""
+
     def _get_description(self):
-        #if (self.description==None or self.description==''):
-        #    return "r: %s, v: %s" % (self.n, self.l)
-        #else:
-        return self.description
+        if not self.description:
+            return ""
+
+        desc = self.description.strip()
+
+        # Again, ground state is mostly visual noise.
+        if desc.lower() == "ground state":
+            return ""
+
+        return desc
+
     class Meta:
         db_table = u'molecularstates'
 
+
 class CollisionType(models.Model):
     name = models.CharField(max_length=64)
-    iaea_code = models.CharField(max_length=64, null=True, unique=True, error_messages={'unique':"This code is already associated with another collision type"})
+    iaea_code = models.CharField(max_length=64, null=True, unique=True, error_messages={'unique': "This code is already associated with another collision type"})
     vamdc_code = models.CharField(max_length=64, null=True, blank=True)
+    has_electron_reactant = models.BooleanField(default=False)
+    has_electron_product = models.BooleanField(default=False)
     description = models.TextField(null=True, blank=True)
+
     def __str__(self):
-        return "%s" % (self.name, )
+        if self.iaea_code:
+            return "%s — %s" % (self.iaea_code, self.name)
+
+        return "%s" % self.name
+
     def __unicode__(self):
-        return "%s" % (self.name, )
+        return self.__str__()
+
     class Meta:
         db_table = u'collisiontypes'
+
 
 class Collision(models.Model):
     reactants = models.ManyToManyField(SpeciesState, related_name="reactants")
@@ -275,46 +324,75 @@ class Collision(models.Model):
     collision_type = models.ForeignKey(CollisionType, on_delete=models.CASCADE)
     description = models.TextField(null=True, blank=True)
     lastmodified = models.DateTimeField(default=timezone.now)
+
+    def reactant_strings(self):
+        reactants = [str(reactant) for reactant in self.reactants.all()]
+
+        if self.collision_type and self.collision_type.has_electron_reactant:
+            reactants.append("e-")
+
+        return reactants
+
+
+    def product_strings(self):
+        products = [str(product) for product in self.products.all()]
+
+        if self.collision_type and self.collision_type.has_electron_product:
+            products.append("e-")
+
+        return products
+
+    def reaction_string(self):
+        return "%s → %s" % (
+            " + ".join(self.reactant_strings()),
+            " + ".join(self.product_strings())
+        )
+
+
     def __str__(self):
-        return "id: %s %s" % (self.id, self._get_description() )
-    def __unicode__(self):
-        return "id: %s %s" % (self.id, self._get_description() )
-    def _get_description(self):
-        if (self.description==None or self.description==''):
-            return "reactants: %s; products: %s; process: %s" % \
-                    ([r.species.stoichiometric_formula or r.species.chemical_formula + " " +
-                        str(r._get_description()) for r in self.reactants.all()],
-                        [p.species.stoichiometric_formula or p.species.chemical_formula + " " +
-                            str(p._get_description()) for p in self.products.all()],
-                        self.collision_type.name)
-        else:
+        if self.description:
             return self.description
+
+        return "%s [%s]" % (
+            self.reaction_string(),
+            str(self.collision_type)
+        )
+
+    def __unicode__(self):
+        return self.__str__()
+
     class Meta:
         db_table = u'collisions'
+
 
 class Author(models.Model):
     name = models.CharField(max_length=128)
     institution = models.CharField(max_length=256, null=True, blank=True)
+
     def __str__(self):
-        return "%s" % (self.name)
+        return "%s" % self.name
+
     def __unicode__(self):
-        return "%s" % (self.name)
+        return self.__str__()
+
     class Meta:
-        db_table= u'authors'
+        db_table = u'authors'
         ordering = ['name']
+
 
 class Source(models.Model):
     CATEGORY_CHOICES = (
-            ('book', 'book'),
-            ('database', 'database'),
-            ('journal', 'journal'),
-            ('preprint', 'preprint'),
-            ('proceedings', 'proceedings'),
-            ('report', 'report'),
-            ('thesis', 'thesis'),
-            ('private communication', 'private communication'),
-            ('vamdc node', 'vamdc node'),
-            )
+        ('book', 'book'),
+        ('database', 'database'),
+        ('journal', 'journal'),
+        ('preprint', 'preprint'),
+        ('proceedings', 'proceedings'),
+        ('report', 'report'),
+        ('thesis', 'thesis'),
+        ('private communication', 'private communication'),
+        ('vamdc node', 'vamdc node'),
+    )
+
     category = models.CharField(max_length=32, choices=CATEGORY_CHOICES, default='journal')
     article_number = models.CharField(max_length=128, null=True, blank=True, help_text="""Article number, journal-specific article identifier, may contain any string""")
     digital_object_id = models.CharField(max_length=128, null=True, blank=True, help_text="""Digital Object Identifier. Example: doi:10.1016/j.adt.2007.11.003""")
@@ -331,16 +409,34 @@ class Source(models.Model):
     comments = models.CharField(max_length=1024, null=True, blank=True)
     year = models.CharField(max_length=16, null=True, blank=True)
 
+    def acol_id(self):
+        if self.source_id:
+            return "BAcol-%s" % self.source_id
+
+        return "Source %s" % self.id
+
     def __str__(self):
-        if len(self.title) > 0 :
-            return "%s" % self.title
-        return "id: %s %s" % (self.id, self.comments)
+        parts = [self.acol_id()]
+
+        if self.year:
+            parts.append("(%s)" % self.year)
+
+        if self.title:
+            parts.append(self.title)
+        elif self.comments:
+            parts.append(self.comments)
+
+        if self.digital_object_id:
+            parts.append(self.digital_object_id)
+
+        return " ".join(parts)
+
     def __unicode__(self):
-        if len(self.title) > 0 :
-            return "%s" % self.title
-        return "id: %s %s" % (self.id, self.comments)
+        return self.__str__()
+
     class Meta:
-        db_table= u'sources'
+        db_table = u'sources'
+
 
 class DataSource(models.Model):
     sources = models.ManyToManyField(Source, related_name="data_sources")
@@ -348,24 +444,106 @@ class DataSource(models.Model):
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return self.description or "DataSource %s" % self.id
+        if self.description:
+            return self.description
+
+        source_text = ", ".join([str(source) for source in self.sources.all()])
+
+        if source_text:
+            return "DataSource %s: %s" % (self.id, source_text)
+
+        return "DataSource %s" % self.id
+
+    def __unicode__(self):
+        return self.__str__()
 
     class Meta:
         db_table = u'datasources'
 
+
 class DataList(models.Model):
-    count =  models.IntegerField(null=True, blank=True)
+    count = models.IntegerField(null=True, blank=True)
     data_values = models.TextField(null=True, blank=True, help_text="""Space delimited values""")
     unit = models.CharField(max_length=16, null=True, blank=True)
     parameter = models.CharField(max_length=32, null=True, blank=True)
     description = models.CharField(max_length=256, null=True, blank=True)
+
+    def values_as_floats(self):
+        if not self.data_values:
+            return []
+
+        values = []
+
+        for value in self.data_values.split():
+            try:
+                values.append(float(value))
+            except ValueError:
+                # Some legacy datasets may contain non-float tokens.
+                # Ignore them for plotting/ranges.
+                pass
+
+        return values
+
+    def endpoint_string(self):
+        """
+        First → last value, preserving original data order.
+
+        This is appropriate for x-axes such as temperature or energy.
+        Do NOT use min/max here, because some axes may be descending or
+        intentionally ordered.
+        """
+        values = self.values_as_floats()
+
+        if not values:
+            return ""
+
+        if len(values) == 1:
+            return "%g" % values[0]
+
+        return "%g – %g" % (values[0], values[-1])
+
+    def minmax_string(self):
+        """
+        Numeric min/max range.
+
+        Useful for y-values, but not for the default human representation.
+        """
+        values = self.values_as_floats()
+
+        if not values:
+            return ""
+
+        if len(values) == 1:
+            return "%g" % values[0]
+
+        return "%g – %g" % (min(values), max(values))
+
+    def axis_string(self):
+        parts = []
+
+        if self.parameter:
+            parts.append(self.parameter)
+
+        if self.unit:
+            parts.append("[%s]" % self.unit)
+
+        if parts:
+            return " ".join(parts)
+
+        if self.description:
+            return self.description
+
+        return "DataList %s" % self.id
+
     def __str__(self):
-        return "id: %s %s" % (self.id, self.description)
+        return self.axis_string()
+
     def __unicode__(self):
-        return "id: %s %s" % (self.id, self.description)
+        return self.__str__()
 
     class Meta:
-        db_table= u'datalists'
+        db_table = u'datalists'
+
 
 class TabulatedData(models.Model):
     collision = models.ForeignKey(Collision, null=True, blank=True, on_delete=models.CASCADE)
@@ -373,10 +551,30 @@ class TabulatedData(models.Model):
     x = models.ManyToManyField(DataList, related_name="tabulated_data_x", help_text="")
     description = models.CharField(max_length=256, null=True, blank=True)
 
+    def first_x(self):
+        try:
+            return self.x.all()[0]
+        except IndexError:
+            return None
+
+    def first_y(self):
+        try:
+            return self.y.all()[0]
+        except IndexError:
+            return None
+
     def __str__(self):
-        return "id: %s %s" % (self.id, self.description)
+        if self.description:
+            return self.description
+
+        if self.collision:
+            return "%s" % str(self.collision)
+
+        return "TabulatedData %s" % self.id
+
     def __unicode__(self):
-        return "id: %s %s" % (self.id, self.description)
+        return self.__str__()
+
     '''
     def XML(self):
         def axis_structure(axis):
@@ -393,6 +591,7 @@ class TabulatedData(models.Model):
         xml += '</TabulatedData>'
         return xml
     '''
+
     def XML(self):
         def axis_structure(axis):
             return '<%s units="%s" parameter="%s"><DataList count="%s">%s</DataList></%s>' % (
@@ -420,5 +619,4 @@ class TabulatedData(models.Model):
         return xml
 
     class Meta:
-        db_table= u'tabulateddata'
-        verbose_name_plural = 'Tabulated data'
+        db_table = u'tabulateddata'
