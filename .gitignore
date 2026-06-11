@@ -48,5 +48,5 @@ tmp/
 # Your project-specific
 ############################
 data/
-static/plots/  # generated plots
+static/plots/
 static_old/
