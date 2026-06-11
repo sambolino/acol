@@ -298,17 +298,37 @@ def _counter_to_sorted_rows(counter, key_name, value_name):
 
 
 
+def _overview_source_label(source_data):
+    title = source_data["title"]
+    doi = source_data["doi_display"] or source_data["doi"]
+    acol_id = source_data["acol_id"]
+
+    if title:
+        full_label = title
+        short_label = _shorten_text(title, 64)
+    elif doi:
+        full_label = doi
+        short_label = _shorten_text(doi, 64)
+    else:
+        full_label = acol_id
+        short_label = acol_id
+
+    return short_label, full_label
+
+
 def _source_count_rows(source_counts):
     rows = []
 
-    for source, data in source_counts.items():
+    for data in source_counts.values():
         rows.append({
-            "source": source,
+            "source": data["source"],
+            "source_full": data["source_full"],
             "title": data["title"],
-            "title_short": data["title_short"],
+            "title_short": data["source"],
             "doi": data["doi"],
             "doi_display": data["doi_display"],
             "doi_url": data["doi_url"],
+            "acol_id": data["acol_id"],
             "count": data["count"],
         })
 
@@ -371,19 +391,22 @@ def _overview_stats():
 
         for source in sources:
             source_data = _source_to_dict(source)
-            source_text = source_data["display"]
+            source_key = source_data["acol_id"]
+            source_label, source_full = _overview_source_label(source_data)
 
-            if source_text not in source_dataset_counts:
-                source_dataset_counts[source_text] = {
+            if source_key not in source_dataset_counts:
+                source_dataset_counts[source_key] = {
                     "count": 0,
-                    "title": source_data["title"] or source_text,
-                    "title_short": source_data["title_short"],
+                    "source": source_label,
+                    "source_full": source_full,
+                    "title": source_data["title"],
                     "doi": source_data["doi"],
                     "doi_display": source_data["doi_display"],
                     "doi_url": source_data["doi_url"],
+                    "acol_id": source_data["acol_id"],
                 }
 
-            source_dataset_counts[source_text]["count"] += 1
+            source_dataset_counts[source_key]["count"] += 1
 
     for collision_type, collision_ids in seen_collision_ids_by_type.items():
         collisions_by_collision_type[collision_type] = len(collision_ids)

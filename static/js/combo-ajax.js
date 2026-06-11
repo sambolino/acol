@@ -101,35 +101,14 @@ $(document).ready(function(){
         $('#OverviewHolder .SimpleBarChart').addClass('animate-bars');
     }
 
-    var CHART_PALETTES = {
-        collisions: [
-            '#2563eb',
-            '#1d4ed8',
-            '#3b82f6',
-            '#60a5fa',
-            '#1e40af',
-            '#93c5fd'
-        ],
-        species: [
-            '#f97316',
-            '#ea580c',
-            '#fb923c',
-            '#fdba74',
-            '#c2410c',
-            '#fed7aa'
-        ],
-        sources: [
-            '#059669',
-            '#047857',
-            '#10b981',
-            '#34d399',
-            '#0f766e',
-            '#5eead4'
-        ]
+    var CHART_COLORS = {
+        collisions: '#2563eb',
+        species: '#f97316',
+        sources: '#0d9488'
     };
 
-    function getChartPalette(chart_kind) {
-        return CHART_PALETTES[chart_kind] || CHART_PALETTES.collisions;
+    function getChartColor(chart_kind) {
+        return CHART_COLORS[chart_kind] || CHART_COLORS.collisions;
     }
 
     function renderHorizontalBarChart(holder, rows, label_key, value_key, chart_kind) {
@@ -146,7 +125,7 @@ $(document).ready(function(){
             }
         }
 
-        var palette = getChartPalette(chart_kind);
+        var color = getChartColor(chart_kind);
         var html = '';
         html += '<div class="SimpleBarChart">';
 
@@ -159,16 +138,11 @@ $(document).ready(function(){
             }
 
             var label = row[label_key];
-            var full_label = row.title || row.full_title || label;
+            var full_label = row.source_full || row.title || row.full_title || label;
             var label_html = htmlEscape(label);
-
-            if (row.doi_display && row.doi_url) {
-                label_html += '<a class="DoiLink" href="' + htmlEscape(row.doi_url) + '" title="' + htmlEscape(full_label + ' — ' + row.doi_url) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(row.doi_display) + '</a>';
-            }
 
             html += '<div class="SimpleBarRow">';
             html += '<div class="SimpleBarLabel" title="' + htmlEscape(full_label) + '">' + label_html + '</div>';
-            var color = palette[j % palette.length];
 
             html += '<div class="SimpleBarOuter">';
             html += '<div class="SimpleBarInner" style="width:' + width + '%; background-color:' + color + '"></div>';
