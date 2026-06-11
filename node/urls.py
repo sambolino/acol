@@ -10,4 +10,6 @@ urlpatterns = [
     url(r'^get_atoms_no_ions/(?P<coll_iaea_code>[\w-]+)/$', views.get_atoms_no_ions),
     url(r'^get_temps/(?P<coll_iaea_code>[\w-]+)/(?P<atom_inchi>[\w-]+)/$', views.get_temps),
     url(r'^plot/(?P<coll_iaea_code>[\w-]+)/(?P<atom_inchi>[\w-]+)/(?P<temperature_index>[\w.]+)/$', views.plot),
+    url(r'^explore/processes/$', views.explore_processes),
+    url(r'^explore/process/(?P<tabdata_id>\d+)/$', views.explore_process_data),
 ]
