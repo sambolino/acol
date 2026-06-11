@@ -313,3 +313,71 @@ input[type="submit"]:hover {
 .resultCell {
     border-right: 1px solid black;
 }
+
+#ExploreHolder {
+    padding: 10px;
+}
+
+#ExploreSummary {
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #eeeeee;
+    border: 1px solid #cccccc;
+}
+
+#ExploreFilters {
+    margin-bottom: 12px;
+}
+
+#ExploreFilters label {
+    margin-right: 20px;
+}
+
+#ExploreSpeciesText {
+    width: 180px;
+}
+
+#ExploreTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#ExploreTable th,
+#ExploreTable td {
+    border: 1px solid #cccccc;
+    padding: 5px 7px;
+    vertical-align: top;
+}
+
+#ExploreTable th {
+    background: #eeeeee;
+}
+
+#ExploreDetail {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 2px solid #dddddd;
+}
+
+#ExploreSources {
+    font-size: 90%;
+    margin-bottom: 10px;
+}
+
+.explore-svg {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    margin-bottom: 12px;
+}
+
+#ExploreRawTable {
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#ExploreRawTable th,
+#ExploreRawTable td {
+    border: 1px solid #cccccc;
+    padding: 4px 7px;
+}

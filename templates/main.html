@@ -39,6 +39,7 @@
       <ul>
         <li><a href="#tabs-1">individual cross sections</a></li>
         <li><a href="#tabs-2">plot</a></li>
+        <li><a href="#tabs-3">explore data</a></li>
       </ul>
       <div id="tabs-1">
         <div class = "styled-select">
@@ -56,6 +57,57 @@
                <div id="PlotHolder"></div>
          </div>
       </div>
+      <div id="tabs-3">
+  <div id="ExploreHolder">
+
+    <div id="ExploreSummary">Loading database overview...</div>
+
+    <div id="ExploreFilters">
+      <label>
+        Collision type:
+        <select id="ExploreCollisionType">
+          <option value="">all</option>
+        </select>
+      </label>
+
+      <label>
+        Species text:
+        <input id="ExploreSpeciesText" type="text" placeholder="H, He, BeD, Isoflurane...">
+      </label>
+
+      <label>
+        Source:
+        <select id="ExploreSource">
+          <option value="">all</option>
+        </select>
+      </label>
+    </div>
+
+    <table id="ExploreTable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Reaction</th>
+          <th>X range</th>
+          <th>Y</th>
+          <th>Source</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="6">Loading...</td></tr>
+      </tbody>
+    </table>
+
+    <div id="ExploreDetail">
+      <h3 id="ExploreTitle">Select a process</h3>
+      <div id="ExploreSources"></div>
+      <div id="ExplorePlot"></div>
+      <div id="ExploreRaw"></div>
+    </div>
+
+  </div>
+</div>
     </div>
 	</div>
 	    

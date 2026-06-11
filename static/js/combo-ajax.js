@@ -18,6 +18,349 @@ $(document).ready(function(){
 
     $("#tabs").tabs();
 
+    var explore_rows = [];
+
+    function htmlEscape(value) {
+        if (value === null || value === undefined) {
+            return '';
+        }
+
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function loadExploreData() {
+        $('#ExploreSummary').html('Loading database overview...');
+        $('#ExploreTable tbody').html('<tr><td colspan="6">Loading...</td></tr>');
+
+        $.getJSON(base_url + '/explore/processes/', function(data) {
+            explore_rows = data.rows;
+
+            buildExploreFilters();
+            renderExploreSummary();
+            renderExploreTable();
+        }).fail(function() {
+            $('#ExploreSummary').html('Could not load database overview.');
+            $('#ExploreTable tbody').html('<tr><td colspan="6">Error loading data.</td></tr>');
+        });
+    }
+
+    function buildExploreFilters() {
+        var types = {};
+        var sources = {};
+
+        for (var i = 0; i < explore_rows.length; i++) {
+            var row = explore_rows[i];
+
+            types[row.collision_type] = row.collision_type_name;
+
+            for (var s = 0; s < row.sources.length; s++) {
+                sources[row.sources[s].acol_id] = row.sources[s].acol_id;
+            }
+        }
+
+        $('#ExploreCollisionType').html('<option value="">all</option>');
+        $.each(types, function(key, value) {
+            $('#ExploreCollisionType').append(
+                '<option value="' + htmlEscape(key) + '">' + htmlEscape(value) + '</option>'
+            );
+        });
+
+        $('#ExploreSource').html('<option value="">all</option>');
+        $.each(sources, function(key, value) {
+            $('#ExploreSource').append(
+                '<option value="' + htmlEscape(key) + '">' + htmlEscape(value) + '</option>'
+            );
+        });
+    }
+
+    function renderExploreSummary() {
+        var types = {};
+        var sources = {};
+        var species = {};
+
+        for (var i = 0; i < explore_rows.length; i++) {
+            var row = explore_rows[i];
+
+            types[row.collision_type] = true;
+
+            for (var r = 0; r < row.reactants.length; r++) {
+                species[row.reactants[r]] = true;
+            }
+
+            for (var p = 0; p < row.products.length; p++) {
+                species[row.products[p]] = true;
+            }
+
+            for (var s = 0; s < row.sources.length; s++) {
+                sources[row.sources[s].acol_id] = true;
+            }
+        }
+
+        $('#ExploreSummary').html(
+            '<b>' + explore_rows.length + '</b> datasets &nbsp; | &nbsp; ' +
+            '<b>' + Object.keys(types).length + '</b> collision types &nbsp; | &nbsp; ' +
+            '<b>' + Object.keys(species).length + '</b> species/states &nbsp; | &nbsp; ' +
+            '<b>' + Object.keys(sources).length + '</b> sources'
+        );
+    }
+
+    function rowHasSource(row, source_id) {
+        for (var i = 0; i < row.sources.length; i++) {
+            if (row.sources[i].acol_id == source_id) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function getFilteredExploreRows() {
+        var collision_type = $('#ExploreCollisionType').val();
+        var source = $('#ExploreSource').val();
+        var species_text = $('#ExploreSpeciesText').val().toLowerCase();
+
+        var rows = [];
+
+        for (var i = 0; i < explore_rows.length; i++) {
+            var row = explore_rows[i];
+
+            if (collision_type != '' && row.collision_type != collision_type) {
+                continue;
+            }
+
+            if (source != '' && !rowHasSource(row, source)) {
+                continue;
+            }
+
+            if (species_text != '') {
+                var text = (
+                    row.reaction + ' ' +
+                    row.reactants.join(' ') + ' ' +
+                    row.products.join(' ')
+                ).toLowerCase();
+
+                if (text.indexOf(species_text) == -1) {
+                    continue;
+                }
+            }
+
+            rows.push(row);
+        }
+
+        return rows;
+    }
+
+    function renderExploreTable() {
+        var rows = getFilteredExploreRows();
+        var html = '';
+
+        if (rows.length == 0) {
+            $('#ExploreTable tbody').html('<tr><td colspan="6">No matching data.</td></tr>');
+            return;
+        }
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+
+            var source_ids = [];
+            for (var s = 0; s < row.sources.length; s++) {
+                source_ids.push(row.sources[s].acol_id);
+            }
+
+            html += '<tr>';
+            html += '<td>' + htmlEscape(row.collision_type) + '</td>';
+            html += '<td>' + htmlEscape(row.reaction) + '</td>';
+            html += '<td>' + htmlEscape(row.x_range + ' ' + row.x_unit) + '</td>';
+            html += '<td>' + htmlEscape(row.y_axis) + '</td>';
+            html += '<td>' + htmlEscape(source_ids.join(', ')) + '</td>';
+            html += '<td><button class="ExplorePlotButton" data-id="' + row.id + '">plot</button></td>';
+            html += '</tr>';
+        }
+
+        $('#ExploreTable tbody').html(html);
+    }
+
+    function loadExploreProcess(tabdata_id) {
+        $('#ExploreTitle').html('Loading...');
+        $('#ExploreSources').html('');
+        $('#ExplorePlot').html('');
+        $('#ExploreRaw').html('');
+
+        $.getJSON(base_url + '/explore/process/' + tabdata_id + '/', function(data) {
+            $('#ExploreTitle').html(
+                htmlEscape(data.collision_type_name + ': ' + data.reaction)
+            );
+
+            renderExploreSources(data);
+            renderExploreSvgPlot(data);
+            renderExploreRawTable(data);
+        }).fail(function() {
+            $('#ExploreTitle').html('Could not load process.');
+        });
+    }
+
+    function renderExploreSources(data) {
+        var html = '';
+
+        if (data.sources && data.sources.length > 0) {
+            html += '<ul>';
+
+            for (var i = 0; i < data.sources.length; i++) {
+                var source = data.sources[i];
+
+                html += '<li>';
+                html += '<b>' + htmlEscape(source.acol_id) + '</b>';
+
+                if (source.year) {
+                    html += ' (' + htmlEscape(source.year) + ')';
+                }
+
+                if (source.title) {
+                    html += ': ' + htmlEscape(source.title);
+                }
+
+                if (source.doi) {
+                    html += ' — ' + htmlEscape(source.doi);
+                }
+
+                html += '</li>';
+            }
+
+            html += '</ul>';
+        }
+
+        $('#ExploreSources').html(html);
+    }
+
+    function renderExploreSvgPlot(data) {
+        var x = data.x_values;
+        var y = data.y_values;
+
+        if (!x || !y || x.length == 0 || y.length == 0) {
+            $('#ExplorePlot').html('No plottable data.');
+            return;
+        }
+
+        var n = Math.min(x.length, y.length);
+
+        var width = 700;
+        var height = 360;
+
+        var left = 75;
+        var right = 20;
+        var top = 25;
+        var bottom = 55;
+
+        var xmin = Math.min.apply(null, x);
+        var xmax = Math.max.apply(null, x);
+        var ymin = Math.min.apply(null, y);
+        var ymax = Math.max.apply(null, y);
+
+        if (xmin == xmax) {
+            xmin -= 1;
+            xmax += 1;
+        }
+
+        if (ymin == ymax) {
+            ymin -= 1;
+            ymax += 1;
+        }
+
+        function sx(value) {
+            return left + ((value - xmin) / (xmax - xmin)) * (width - left - right);
+        }
+
+        function sy(value) {
+            return top + (1 - ((value - ymin) / (ymax - ymin))) * (height - top - bottom);
+        }
+
+        var points = [];
+
+        for (var i = 0; i < n; i++) {
+            points.push(sx(x[i]) + ',' + sy(y[i]));
+        }
+
+        var x_label = data.x_axis || data.x_parameter;
+        var y_label = data.y_axis || data.y_parameter;
+
+        var svg = '';
+        svg += '<svg width="' + width + '" height="' + height + '" class="explore-svg">';
+        svg += '<line x1="' + left + '" y1="' + top + '" x2="' + left + '" y2="' + (height - bottom) + '" stroke="#333" />';
+        svg += '<line x1="' + left + '" y1="' + (height - bottom) + '" x2="' + (width - right) + '" y2="' + (height - bottom) + '" stroke="#333" />';
+        svg += '<polyline fill="none" stroke="#aa0000" stroke-width="2" points="' + points.join(' ') + '" />';
+
+        for (var j = 0; j < n; j++) {
+            svg += '<circle cx="' + sx(x[j]) + '" cy="' + sy(y[j]) + '" r="2" fill="#aa0000">';
+            svg += '<title>' + htmlEscape(x_label + ': ' + x[j] + ', ' + y_label + ': ' + y[j]) + '</title>';
+            svg += '</circle>';
+        }
+
+        svg += '<text x="' + (width / 2) + '" y="' + (height - 12) + '" text-anchor="middle">' + htmlEscape(x_label) + '</text>';
+        svg += '<text x="16" y="' + (height / 2) + '" text-anchor="middle" transform="rotate(-90 16 ' + (height / 2) + ')">' + htmlEscape(y_label) + '</text>';
+
+        svg += '<text x="' + left + '" y="' + (height - bottom + 18) + '" text-anchor="middle">' + htmlEscape(xmin.toPrecision(3)) + '</text>';
+        svg += '<text x="' + (width - right) + '" y="' + (height - bottom + 18) + '" text-anchor="middle">' + htmlEscape(xmax.toPrecision(3)) + '</text>';
+
+        svg += '<text x="' + (left - 8) + '" y="' + sy(ymin) + '" text-anchor="end">' + htmlEscape(ymin.toPrecision(3)) + '</text>';
+        svg += '<text x="' + (left - 8) + '" y="' + sy(ymax) + '" text-anchor="end">' + htmlEscape(ymax.toPrecision(3)) + '</text>';
+
+        svg += '</svg>';
+
+        $('#ExplorePlot').html(svg);
+    }
+
+    function renderExploreRawTable(data) {
+        var x = data.x_values || [];
+        var y = data.y_values || [];
+        var n = Math.min(x.length, y.length);
+
+        var x_label = data.x_axis || data.x_parameter;
+        var y_label = data.y_axis || data.y_parameter;
+
+        var html = '';
+        html += '<table id="ExploreRawTable">';
+        html += '<thead><tr>';
+        html += '<th>' + htmlEscape(x_label) + '</th>';
+        html += '<th>' + htmlEscape(y_label) + '</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        for (var i = 0; i < n; i++) {
+            html += '<tr>';
+            html += '<td>' + htmlEscape(x[i]) + '</td>';
+            html += '<td>' + htmlEscape(y[i]) + '</td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        $('#ExploreRaw').html(html);
+    }
+
+    $('#ExploreCollisionType').change(function() {
+        renderExploreTable();
+    });
+
+    $('#ExploreSource').change(function() {
+        renderExploreTable();
+    });
+
+    $('#ExploreSpeciesText').keyup(function() {
+        renderExploreTable();
+    });
+
+    $('#ExploreTable').on('click', '.ExplorePlotButton', function() {
+        loadExploreProcess($(this).attr('data-id'));
+    });
+
+    loadExploreData();
+
+
     function loadXsamsSpecies() {
         var coll_iaea_code = $(colltypes_xsams).val();
         var species_role = $(species_role_xsams).val();
