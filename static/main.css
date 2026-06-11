@@ -216,7 +216,7 @@ a:hover {
 .OverviewCharts {
     display: grid;
     gap: 20px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .OverviewChartBox {
@@ -293,12 +293,6 @@ a:hover {
     to { transform: scaleX(1); }
 }
 
-@media (max-width: 900px) {
-    .OverviewCharts {
-        grid-template-columns: 1fr;
-    }
-
-}
 
 /* =========================================================
    Explore

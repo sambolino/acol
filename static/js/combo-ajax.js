@@ -44,18 +44,18 @@ $(document).ready(function(){
                 'collisions'
             );
             renderHorizontalBarChart(
-                '#OverviewTopSpecies',
-                data.top_species,
-                'species',
-                'count',
-                'species'
-            );
-            renderHorizontalBarChart(
                 '#OverviewSources',
-                data.sources_by_dataset_count,
+                data.papers_contributing_collision_data || data.sources_by_dataset_count,
                 'source',
                 'count',
                 'sources'
+            );
+            renderHorizontalBarChart(
+                '#OverviewSpeciesStates',
+                data.species_state_occurrences || data.top_species,
+                'species',
+                'count',
+                'species'
             );
             overview_rendered = true;
             animateOverviewChartsOnce();
