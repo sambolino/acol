@@ -37,104 +37,100 @@
 	<div id="wrapper">
     <div id="tabs">
       <ul>
-        <li><a href="#tabs-1">Generate XSAMS</a></li>
-        <li><a href="#tabs-2">Qn plots</a></li>
-        <li><a href="#tabs-3">Overview</a></li>
-        <li><a href="#tabs-4">Explore data</a></li>
+        <li><a href="#tabs-1">Overview</a></li>
+        <li><a href="#tabs-2">Explore data</a></li>
+        <li><a href="#tabs-3">Qn plots</a></li>
+        <li><a href="#tabs-4">Generate XSAMS</a></li>
       </ul>
       <div id="tabs-1">
-        <div class = "styled-select">
-	        <ul>{{ f.as_ul }}</ul>
-          <input id="generateXsams" type="submit" value="Search">
-        </div>
-        <div id="results">
-             <div id="XMLHolder"></div>
+        <div id="OverviewHolder">
+          <div id="OverviewSummary">
+            Loading statistics...
+          </div>
+
+          <div class="OverviewCharts">
+            <div class="OverviewChartBox">
+              <h3>Datasets by collision type</h3>
+              <div id="OverviewDatasetsByType"></div>
+            </div>
+
+            <div class="OverviewChartBox">
+              <h3>Collisions by collision type</h3>
+              <div id="OverviewCollisionsByType"></div>
+            </div>
+
+            <div class="OverviewChartBox">
+              <h3>Top species/states</h3>
+              <div id="OverviewTopSpecies"></div>
+            </div>
+
+            <div class="OverviewChartBox">
+              <h3>Sources by dataset count</h3>
+              <div id="OverviewSources"></div>
+            </div>
+          </div>
         </div>
       </div>
       <div id="tabs-2">
+        <div id="ExploreHolder">
+          <div id="ExploreSummary">Loading database overview...</div>
+
+          <div id="ExploreFilters">
+            <div class="ExploreFilterItem">
+              <label for="ExploreCollisionType">Collision type</label>
+              <select id="ExploreCollisionType">
+                <option value="">all</option>
+              </select>
+            </div>
+
+            <div class="ExploreFilterItem ExploreSpeciesFilterItem">
+              <label for="ExploreSpeciesText">Species filter</label>
+              <input id="ExploreSpeciesText" type="text" placeholder="formula or name, e.g. H, He, Hydrogen">
+            </div>
+
+            <div class="ExploreFilterItem">
+              <label for="ExploreSource">Source</label>
+              <select id="ExploreSource">
+                <option value="">all</option>
+              </select>
+            </div>
+          </div>
+
+          <table id="ExploreTable">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Reaction</th>
+                <th>X range</th>
+                <th>Y range</th>
+                <th>Source</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="tabs-3">
+        <p class="TabIntro">Quick diagnostic plots of rate coefficients against principal quantum number for selected collision processes and temperatures.</p>
         <div class="styled-select">
-           <ul>{{ p.as_ul }}</ul>
-           <input id="plot" type="submit" value="Plot">
-               <div id="PlotHolder"></div>
-         </div>
+          <ul>{{ p.as_ul }}</ul>
+          <input id="plot" type="submit" value="Plot">
+          <div id="PlotHolder"></div>
+        </div>
       </div>
-<div id="tabs-3">
-  <div id="OverviewHolder">
-
-    <div id="OverviewSummary">
-      Loading statistics...
-    </div>
-
-    <div class="OverviewCharts">
-
-      <div class="OverviewChartBox">
-        <h3>Datasets by collision type</h3>
-        <div id="OverviewDatasetsByType"></div>
-      </div>
-
-      <div class="OverviewChartBox">
-        <h3>Collisions by collision type</h3>
-        <div id="OverviewCollisionsByType"></div>
-      </div>
-
-      <div class="OverviewChartBox">
-        <h3>Top species/states</h3>
-        <div id="OverviewTopSpecies"></div>
-      </div>
-
-      <div class="OverviewChartBox">
-        <h3>Sources by dataset count</h3>
-        <div id="OverviewSources"></div>
-      </div>
-
-    </div>
-
-  </div>
-</div>
       <div id="tabs-4">
-  <div id="ExploreHolder">
-
-    <div id="ExploreSummary">Loading database overview...</div>
-
-    <div id="ExploreFilters">
-<div class="ExploreFilterItem">
-  <label for="ExploreCollisionType">Collision type</label>
-  <select id="ExploreCollisionType">
-    <option value="">all</option>
-  </select>
-</div>
-
-<div class="ExploreFilterItem ExploreSpeciesFilterItem">
-  <label for="ExploreSpeciesText">Species filter</label>
-  <input id="ExploreSpeciesText" type="text" placeholder="formula or name, e.g. H, He, Hydrogen">
-</div>
-
-<div class="ExploreFilterItem">
-  <label for="ExploreSource">Source</label>
-  <select id="ExploreSource">
-    <option value="">all</option>
-  </select>
-</div>
-    </div>
-
-    <table id="ExploreTable">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Reaction</th>
-          <th>X range</th>
-          <th>Y range</th>
-          <th>Source</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="6">Loading...</td></tr>
-      </tbody>
-    </table>
-
-  </div>
-</div>
+        <p class="TabIntro">Generate XSAMS output for selected collision processes and species. This is the low-level VAMDC-style query interface.</p>
+        <div class="styled-select">
+          <ul>{{ f.as_ul }}</ul>
+          <input id="generateXsams" type="submit" value="Search">
+        </div>
+        <div id="results">
+          <div id="XMLHolder"></div>
+        </div>
+      </div>
     </div>
 	</div>
 

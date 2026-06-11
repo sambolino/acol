@@ -16,7 +16,16 @@ $(document).ready(function(){
     $(atoms_plot).resetElem();
     $(temperatures_plot).resetElem();
 
-    $("#tabs").tabs();
+    var overview_rendered = false;
+    var overview_animated = false;
+
+    $("#tabs").tabs({
+        activate: function(event, ui) {
+            if (ui.newPanel.attr('id') == 'tabs-1') {
+                animateOverviewChartsOnce();
+            }
+        }
+    });
 
     var overview_stats = null;
 
@@ -51,6 +60,8 @@ $(document).ready(function(){
                 'source',
                 'count'
             );
+            overview_rendered = true;
+            animateOverviewChartsOnce();
         }).fail(function() {
             $('#OverviewSummary').html('Could not load statistics.');
         });
@@ -61,11 +72,10 @@ $(document).ready(function(){
 
         var html = '';
         html += '<div class="OverviewCards">';
-        html += overviewCard('Datasets', summary.datasets);
         html += overviewCard('Collisions', summary.collisions);
         html += overviewCard('Collision types', summary.collision_types);
         html += overviewCard('Species', summary.species);
-        html += overviewCard('States', summary.species_states);
+        html += overviewCard('Species states', summary.species_states);
         html += overviewCard('Sources', summary.sources);
         html += '</div>';
 
@@ -79,6 +89,19 @@ $(document).ready(function(){
             '<div class="OverviewCardLabel">' + htmlEscape(label) + '</div>' +
             '</div>'
         );
+    }
+
+    function isOverviewTabActive() {
+        return $('#tabs').tabs('option', 'active') === 0;
+    }
+
+    function animateOverviewChartsOnce() {
+        if (!overview_rendered || overview_animated || !isOverviewTabActive()) {
+            return;
+        }
+
+        overview_animated = true;
+        $('#OverviewHolder .SimpleBarChart').addClass('animate-bars');
     }
 
     function renderHorizontalBarChart(holder, rows, label_key, value_key) {
@@ -106,8 +129,16 @@ $(document).ready(function(){
                 width = Math.round((row[value_key] / max_value) * 100);
             }
 
+            var label = row[label_key];
+            var full_label = row.title || row.full_title || label;
+            var label_html = htmlEscape(label);
+
+            if (row.doi && row.doi_url) {
+                label_html += '<a class="DoiLink" href="' + htmlEscape(row.doi_url) + '" title="' + htmlEscape(full_label + ' — ' + row.doi_url) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(row.doi.toLowerCase().indexOf('doi:') === 0 ? row.doi : 'doi:' + row.doi) + '</a>';
+            }
+
             html += '<div class="SimpleBarRow">';
-            html += '<div class="SimpleBarLabel">' + htmlEscape(row[label_key]) + '</div>';
+            html += '<div class="SimpleBarLabel" title="' + htmlEscape(full_label) + '">' + label_html + '</div>';
             html += '<div class="SimpleBarOuter">';
             html += '<div class="SimpleBarInner" style="width:' + width + '%"></div>';
             html += '</div>';
@@ -163,7 +194,7 @@ $(document).ready(function(){
             types[row.collision_type] = row.collision_type_name;
 
             for (var s = 0; s < row.sources.length; s++) {
-                sources[row.sources[s].acol_id] = row.sources[s].acol_id;
+                sources[row.sources[s].acol_id] = row.sources[s].table_display || row.sources[s].display || row.sources[s].title_short || row.sources[s].acol_id;
             }
         }
 
@@ -273,9 +304,9 @@ $(document).ready(function(){
         for (var i = 0; i < rows.length; i++) {
             var row = rows[i];
 
-            var source_labels = [];
+            var source_html = [];
             for (var s = 0; s < row.sources.length; s++) {
-              source_labels.push(row.sources[s].display || row.sources[s].doi || row.sources[s].acol_id);
+              source_html.push(renderSourceSummary(row.sources[s]));
             }
 
             html += '<tr>';
@@ -283,12 +314,49 @@ $(document).ready(function(){
             html += '<td>' + htmlEscape(row.reaction) + '</td>';
             html += '<td>' + htmlEscape(row.x_range + ' ' + row.x_unit) + '</td>';
             html += '<td>' + htmlEscape(row.y_range + ' ' + row.y_unit) + '</td>';
-            html += '<td class="ExploreSourceCell">' + htmlEscape(source_labels.join(', ')) + '</td>';
+            html += '<td class="ExploreSourceCell">' + source_html.join('') + '</td>';
             html += '<td><button type="button" class="ExplorePlotButton" data-id="' + row.id + '">Plot/details</button></td>';
             html += '</tr>';
         }
 
         $('#ExploreTable tbody').html(html);
+    }
+
+    function sourceTooltip(source) {
+        var parts = [];
+        if (source.title) {
+            parts.push(source.title);
+        }
+        if (source.doi_url) {
+            parts.push(source.doi_url);
+        }
+        if (parts.length == 0) {
+            parts.push(source.display || source.acol_id || 'Source');
+        }
+        return parts.join(' — ');
+    }
+
+    function renderDoiLink(source) {
+        // TODO: Add richer DOI metadata previews only if a safe backend proxy is available.
+        if (!source.doi || !source.doi_url) {
+            return '';
+        }
+
+        var doi_text = source.doi;
+        if (doi_text.toLowerCase().indexOf('doi:') !== 0) {
+            doi_text = 'doi:' + doi_text;
+        }
+
+        return '<a class="DoiLink" href="' + htmlEscape(source.doi_url) + '" title="' + htmlEscape(sourceTooltip(source)) + '" target="_blank" rel="noopener noreferrer">' + htmlEscape(doi_text) + '</a>';
+    }
+
+    function renderSourceSummary(source) {
+        var label = source.table_display || source.display || source.title_short || source.title || source.acol_id;
+        var html = '<span class="SourceSummary" data-acol-id="' + htmlEscape(source.acol_id) + '" title="' + htmlEscape(sourceTooltip(source)) + '">';
+        html += '<span class="SourceTitle">' + htmlEscape(label) + '</span>';
+        html += renderDoiLink(source);
+        html += '</span>';
+        return html;
     }
 
     function openExploreModal() {
@@ -337,21 +405,14 @@ $(document).ready(function(){
             for (var i = 0; i < data.sources.length; i++) {
                 var source = data.sources[i];
 
-                html += '<li>';
-                html += '<b>' + htmlEscape(source.acol_id) + '</b>';
+                html += '<li class="ExploreSourceDetail" title="' + htmlEscape(sourceTooltip(source)) + '">';
+                html += '<span class="SourceTitle">' + htmlEscape(source.display || source.title_short || source.title || source.acol_id) + '</span>';
 
                 if (source.year) {
-                    html += ' (' + htmlEscape(source.year) + ')';
+                    html += ' <span class="SourceYear">(' + htmlEscape(source.year) + ')</span>';
                 }
 
-                if (source.title) {
-                    html += ': ' + htmlEscape(source.title);
-                }
-
-                if (source.doi) {
-                    html += ' — ' + htmlEscape(source.doi);
-                }
-
+                html += renderDoiLink(source);
                 html += '</li>';
             }
 
