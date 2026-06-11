@@ -129,17 +129,37 @@ def _collision_species_names(collision):
 # Private Explore helpers
 # ----------------------------------------------------------------------
 
+def _shorten_text(value, max_length=72):
+    value = (value or "").strip()
+
+    if len(value) <= max_length:
+        return value
+
+    return "%s..." % value[:max_length - 3].rstrip()
+
+
+def _doi_url(doi):
+    doi = (doi or "").strip()
+
+    if doi.lower().startswith("doi:"):
+        doi = doi[4:].strip()
+
+    if not doi:
+        return ""
+
+    return "https://doi.org/%s" % doi
+
+
 def _source_to_dict(source):
     doi = source.digital_object_id or ""
     title = source.title or ""
     year = source.year or ""
+    title_short = _shorten_text(title)
 
-    if doi:
-        display = doi
-    elif title and year:
-        display = "%s (%s)" % (title, year)
-    elif title:
-        display = title
+    if title_short and year:
+        display = "%s (%s)" % (title_short, year)
+    elif title_short:
+        display = title_short
     else:
         display = source.acol_id()
 
@@ -149,10 +169,13 @@ def _source_to_dict(source):
         "acol_id": source.acol_id(),
         "text": str(source),
         "display": display,
+        "table_display": display,
         "year": year,
         "doi": doi,
+        "doi_url": _doi_url(doi),
         "uri": source.uri or "",
         "title": title,
+        "title_short": title_short,
     }
 
 def _sources_for_collision(collision):
@@ -247,6 +270,23 @@ def _counter_to_sorted_rows(counter, key_name, value_name):
     return rows
 
 
+
+def _source_count_rows(source_counts):
+    rows = []
+
+    for source, data in source_counts.items():
+        rows.append({
+            "source": source,
+            "title": data["title"],
+            "title_short": data["title_short"],
+            "doi": data["doi"],
+            "doi_url": data["doi_url"],
+            "count": data["count"],
+        })
+
+    rows.sort(key=lambda row: row["count"], reverse=True)
+    return rows
+
 def _overview_stats():
     dataset_count = TabulatedData.objects.count()
     collision_count = Collision.objects.count()
@@ -302,8 +342,19 @@ def _overview_stats():
         sources = _sources_for_collision(collision)
 
         for source in sources:
-            source_text = source.acol_id()
-            source_dataset_counts[source_text] = source_dataset_counts.get(source_text, 0) + 1
+            source_data = _source_to_dict(source)
+            source_text = source_data["display"]
+
+            if source_text not in source_dataset_counts:
+                source_dataset_counts[source_text] = {
+                    "count": 0,
+                    "title": source_data["title"] or source_text,
+                    "title_short": source_data["title_short"],
+                    "doi": source_data["doi"],
+                    "doi_url": source_data["doi_url"],
+                }
+
+            source_dataset_counts[source_text]["count"] += 1
 
     for collision_type, collision_ids in seen_collision_ids_by_type.items():
         collisions_by_collision_type[collision_type] = len(collision_ids)
@@ -332,11 +383,7 @@ def _overview_stats():
             "species",
             "count"
         )[:15],
-        "sources_by_dataset_count": _counter_to_sorted_rows(
-            source_dataset_counts,
-            "source",
-            "count"
-        ),
+        "sources_by_dataset_count": _source_count_rows(source_dataset_counts),
     }
 
 
