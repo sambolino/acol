@@ -50,3 +50,8 @@ tmp/
 data/
 static/plots/
 static_old/
+
+############################
+# Editor
+############################
+.idea
