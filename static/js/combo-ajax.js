@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    base_url = 'http://servo.aob.rs/acol';
+    var base_url = $('body').attr('data-base-url');
 
     species_xsams = 'select[name=SpeciesXsams]';
     species_role_xsams = 'select[name=SpeciesRoleXsams]';
@@ -576,7 +576,19 @@ $(document).ready(function(){
         );
         $('#ExploreModalStatus').html('');
         $('#ExploreSources').html(renderExploreSources(data));
-        $('#ExplorePlot').html(renderExploreSvgPlot(data));
+        if (data.artifact_plots && data.artifact_plots.length) {
+            var plots = '';
+            for (var i = 0; i < data.artifact_plots.length; i++) {
+                var plot = data.artifact_plots[i];
+                plots += '<h4>' + htmlEscape(plot.model) + '</h4>' +
+                    '<img class="ExploreArtifactPlot" src="' +
+                    htmlEscape(base_url + plot.url) +
+                    '" alt="' + htmlEscape(plot.model) + ' reaction plot">';
+            }
+            $('#ExplorePlot').html(plots);
+        } else {
+            $('#ExplorePlot').html(renderExploreSvgPlot(data));
+        }
         $('#ExploreRaw').html(renderExploreRawTable(data));
     }
 
@@ -779,6 +791,304 @@ $(document).ready(function(){
     });
 
     loadExploreData();
+
+    var gpr_state_results = {};
+
+    function resetGprSelect(selector, text) {
+        $(selector)
+            .html('<option value="">' + htmlEscape(text || '---------') + '</option>')
+            .val('')
+            .prop('disabled', true);
+    }
+
+    function appendGprOptions(selector, values, label_prefix) {
+        $.each(values, function(key, value) {
+            $(selector).append(
+                '<option value="' + htmlEscape(key) + '">' +
+                htmlEscape(label_prefix + value) + '</option>'
+            );
+        });
+    }
+
+    function clearGprResult() {
+        $('#GprResult').removeClass('result error calculating').empty();
+    }
+
+    function updateGprCompletion() {
+        var has_result_state = $('#GprResultN').val() != '';
+        var temperature = Number($('#GprTemperature').val());
+
+        $('#GprTemperature').prop('disabled', !has_result_state);
+        $('#GprCalculate').prop(
+            'disabled',
+            !has_result_state || !isFinite(temperature) || temperature <= 0
+        );
+    }
+
+    function loadGprAtoms() {
+        var process = $('#GprProcess').val();
+        gpr_state_results = {};
+        resetGprSelect('#GprAtom');
+        resetGprSelect('#GprInitialN');
+        resetGprSelect('#GprResultN');
+        $('#GprTemperature').prop('disabled', true);
+        $('#GprCalculate').prop('disabled', true);
+        clearGprResult();
+
+        if (!process) {
+            return;
+        }
+
+        resetGprSelect('#GprAtom', 'Loading...');
+
+        $.getJSON(base_url + '/gpr/atoms/' + encodeURIComponent(process) + '/', function(data) {
+            resetGprSelect('#GprAtom');
+            appendGprOptions('#GprAtom', data, '');
+            $('#GprAtom').prop('disabled', false);
+        }).fail(function() {
+            resetGprSelect('#GprAtom', 'Could not load atoms');
+        });
+    }
+
+    function loadGprStates() {
+        var process = $('#GprProcess').val();
+        var atom = $('#GprAtom').val();
+        gpr_state_results = {};
+        resetGprSelect('#GprInitialN');
+        resetGprSelect('#GprResultN');
+        $('#GprTemperature').prop('disabled', true);
+        $('#GprCalculate').prop('disabled', true);
+        clearGprResult();
+
+        if (!process || !atom) {
+            return;
+        }
+
+        resetGprSelect('#GprInitialN', 'Loading...');
+
+        $.getJSON(
+            base_url + '/gpr/states/' + encodeURIComponent(process) + '/' + encodeURIComponent(atom) + '/',
+            function(data) {
+                gpr_state_results = data.results || {};
+                resetGprSelect('#GprInitialN');
+
+                for (var i = 0; i < data.initial.length; i++) {
+                    var n = data.initial[i];
+                    $('#GprInitialN').append('<option value="' + htmlEscape(n) + '">n=' + htmlEscape(n) + '</option>');
+                }
+
+                $('#GprInitialN').prop('disabled', data.initial.length == 0);
+            }
+        ).fail(function() {
+            resetGprSelect('#GprInitialN', 'Could not load states');
+        });
+    }
+
+    function loadGprResultStates() {
+        var initial_n = $('#GprInitialN').val();
+        var values = gpr_state_results[initial_n] || [];
+
+        resetGprSelect('#GprResultN');
+
+        for (var i = 0; i < values.length; i++) {
+            var n = values[i];
+            $('#GprResultN').append('<option value="' + htmlEscape(n) + '">n=' + htmlEscape(n) + '</option>');
+        }
+
+        $('#GprResultN').prop('disabled', values.length == 0);
+        $('#GprTemperature').prop('disabled', true);
+        $('#GprCalculate').prop('disabled', true);
+        clearGprResult();
+    }
+
+    function formatGprNumber(value) {
+        var number = Number(value);
+
+        if (!isFinite(number)) {
+            return '';
+        }
+
+        return number.toExponential(6);
+    }
+
+    function renderGprPlot(data) {
+        var x_values = data.curve_x || [];
+        var y_values = data.curve_y || [];
+        var lower_values = data.lower_95_curve_y || [];
+        var upper_values = data.upper_95_curve_y || [];
+
+        if (x_values.length < 2 || x_values.length != y_values.length) {
+            return '';
+        }
+
+        var width = 860;
+        var height = 470;
+        var left = 105;
+        var right = 28;
+        var top = 68;
+        var bottom = 72;
+        var plot_width = width - left - right;
+        var plot_height = height - top - bottom;
+        var x_min = Math.min.apply(null, x_values);
+        var x_max = Math.max.apply(null, x_values);
+        var all_y = y_values.concat(lower_values, upper_values, data.observed_y || [], [data.predicted_y]);
+        var log_y = [];
+
+        for (var i = 0; i < all_y.length; i++) {
+            var value = Number(all_y[i]);
+            if (isFinite(value) && value > 0) {
+                log_y.push(Math.log(value) / Math.LN10);
+            }
+        }
+
+        if (!log_y.length || x_max == x_min) {
+            return '';
+        }
+
+        var y_log_min = Math.min.apply(null, log_y);
+        var y_log_max = Math.max.apply(null, log_y);
+        var y_padding = Math.max((y_log_max - y_log_min) * 0.06, 0.08);
+        y_log_min -= y_padding;
+        y_log_max += y_padding;
+
+        function sx(value) {
+            return left + ((Number(value) - x_min) / (x_max - x_min)) * plot_width;
+        }
+
+        function sy(value) {
+            var logarithm = Math.log(Number(value)) / Math.LN10;
+            return top + ((y_log_max - logarithm) / (y_log_max - y_log_min)) * plot_height;
+        }
+
+        function plotPoints(xs, ys, reverse) {
+            var points = [];
+            var start = reverse ? xs.length - 1 : 0;
+            var end = reverse ? -1 : xs.length;
+            var step = reverse ? -1 : 1;
+
+            for (var index = start; index != end; index += step) {
+                if (Number(ys[index]) > 0) {
+                    points.push(sx(xs[index]).toFixed(2) + ',' + sy(ys[index]).toFixed(2));
+                }
+            }
+
+            return points;
+        }
+
+        var curve_points = plotPoints(x_values, y_values, false);
+        var band_points = plotPoints(x_values, upper_values, false).concat(
+            plotPoints(x_values, lower_values, true)
+        );
+        var svg = '<div class="GprPlot">';
+        svg += '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="GPR prediction curve">';
+        svg += '<text x="' + (width / 2) + '" y="22" text-anchor="middle" class="GprPlotTitle">' + htmlEscape(data.reaction) + '</text>';
+
+        var observed_left = Math.max(left, Math.min(left + plot_width, sx(data.observed_x_min)));
+        var observed_right = Math.max(left, Math.min(left + plot_width, sx(data.observed_x_max)));
+        if (observed_left > left) {
+            svg += '<rect x="' + left + '" y="' + top + '" width="' + (observed_left - left) + '" height="' + plot_height + '" class="GprExtrapolation" />';
+        }
+        if (observed_right < left + plot_width) {
+            svg += '<rect x="' + observed_right + '" y="' + top + '" width="' + (left + plot_width - observed_right) + '" height="' + plot_height + '" class="GprExtrapolation" />';
+        }
+
+        for (var tick = 0; tick <= 4; tick++) {
+            var x_tick_value = x_min + ((x_max - x_min) * tick / 4);
+            var x_tick = sx(x_tick_value);
+            var y_tick_log = y_log_min + ((y_log_max - y_log_min) * tick / 4);
+            var y_tick_value = Math.pow(10, y_tick_log);
+            var y_tick = sy(y_tick_value);
+            svg += '<line x1="' + x_tick + '" y1="' + top + '" x2="' + x_tick + '" y2="' + (top + plot_height) + '" class="GprGrid" />';
+            svg += '<line x1="' + left + '" y1="' + y_tick + '" x2="' + (left + plot_width) + '" y2="' + y_tick + '" class="GprGrid" />';
+            svg += '<text x="' + x_tick + '" y="' + (top + plot_height + 22) + '" text-anchor="middle" class="GprTick">' + htmlEscape(x_tick_value.toFixed(0)) + '</text>';
+            svg += '<text x="' + (left - 10) + '" y="' + (y_tick + 4) + '" text-anchor="end" class="GprTick">' + htmlEscape(formatGprNumber(y_tick_value)) + '</text>';
+        }
+
+        svg += '<polygon points="' + band_points.join(' ') + '" class="GprBand" />';
+        svg += '<polyline points="' + curve_points.join(' ') + '" class="GprCurve" />';
+
+        var observed_x = data.observed_x || [];
+        var observed_y = data.observed_y || [];
+        for (var point = 0; point < observed_x.length; point++) {
+            svg += '<circle cx="' + sx(observed_x[point]) + '" cy="' + sy(observed_y[point]) + '" r="3.2" class="GprObservedPoint" />';
+        }
+
+        var selected_x = sx(data.temperature_k);
+        var selected_y = sy(data.predicted_y);
+        svg += '<line x1="' + selected_x + '" y1="' + top + '" x2="' + selected_x + '" y2="' + (top + plot_height) + '" class="GprSelectedGuide" />';
+        svg += '<line x1="' + left + '" y1="' + selected_y + '" x2="' + selected_x + '" y2="' + selected_y + '" class="GprSelectedGuide" />';
+        svg += '<circle cx="' + selected_x + '" cy="' + selected_y + '" r="6" class="GprSelectedPoint" />';
+        svg += '<text x="' + selected_x + '" y="' + (top + plot_height + 42) + '" text-anchor="middle" class="GprSelectedTick">' + htmlEscape(data.temperature_k + ' ' + data.x_unit) + '</text>';
+        svg += '<text x="' + (left - 10) + '" y="' + (selected_y + 4) + '" text-anchor="end" class="GprSelectedTick">' + htmlEscape(formatGprNumber(data.predicted_y)) + '</text>';
+        svg += '<line x1="' + left + '" y1="' + (top + plot_height) + '" x2="' + (left + plot_width) + '" y2="' + (top + plot_height) + '" class="GprAxis" />';
+        svg += '<line x1="' + left + '" y1="' + top + '" x2="' + left + '" y2="' + (top + plot_height) + '" class="GprAxis" />';
+        svg += '<text x="' + (left + plot_width / 2) + '" y="' + (height - 14) + '" text-anchor="middle" class="GprAxisLabel">Temperature [' + htmlEscape(data.x_unit) + ']</text>';
+        svg += '<text transform="translate(20 ' + (top + plot_height / 2) + ') rotate(-90)" text-anchor="middle" class="GprAxisLabel">Rate coefficient [' + htmlEscape(data.y_unit) + '] (log scale)</text>';
+        svg += '<g class="GprLegend"><line x1="' + (left + 10) + '" y1="45" x2="' + (left + 38) + '" y2="45" class="GprCurve" /><text x="' + (left + 44) + '" y="49">GPR mean</text>';
+        svg += '<circle cx="' + (left + 150) + '" cy="45" r="3.2" class="GprObservedPoint" /><text x="' + (left + 160) + '" y="49">Database data</text>';
+        svg += '<circle cx="' + (left + 286) + '" cy="45" r="5" class="GprSelectedPoint" /><text x="' + (left + 298) + '" y="49">Selected prediction</text>';
+        svg += '<rect x="' + (left + 430) + '" y="38" width="25" height="12" class="GprBand" /><text x="' + (left + 462) + '" y="49">95% uncertainty</text></g>';
+        svg += '</svg></div>';
+        return svg;
+    }
+
+    $('#GprProcess').change(loadGprAtoms);
+    $('#GprAtom').change(loadGprStates);
+    $('#GprInitialN').change(loadGprResultStates);
+    $('#GprResultN').change(function() {
+        clearGprResult();
+        updateGprCompletion();
+    });
+
+    $('#GprTemperature').on('change keyup input', function() {
+        clearGprResult();
+        updateGprCompletion();
+    });
+
+    $('#GprForm').submit(function(event) {
+        event.preventDefault();
+
+        var result_holder = $('#GprResult');
+        result_holder
+            .html('Calculating with the saved GPR model...')
+            .removeClass('result error')
+            .addClass('calculating');
+        $('#GprCalculate').prop('disabled', true);
+
+        $.ajax({
+            url: base_url + '/gpr/predict/',
+            method: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json'
+        }).done(function(data) {
+            var html = '<div class="GprResultLabel">Predicted value</div>';
+            html += '<div class="GprResultValue">' + htmlEscape(formatGprNumber(data.predicted_y)) + '</div>';
+            html += '<div class="GprExactPoint">T = ' + htmlEscape(data.temperature_k) + ' ' + htmlEscape(data.x_unit);
+            html += ' &nbsp; | &nbsp; y = ' + htmlEscape(formatGprNumber(data.predicted_y)) + ' ' + htmlEscape(data.y_unit) + '</div>';
+
+            if (data.lower_95_y !== undefined && data.upper_95_y !== undefined) {
+                html += '<div class="GprResultInterval">95% predictive interval: ';
+                html += htmlEscape(formatGprNumber(data.lower_95_y));
+                html += ' – ' + htmlEscape(formatGprNumber(data.upper_95_y)) + '</div>';
+            }
+
+            html += renderGprPlot(data);
+
+            result_holder.html(html).removeClass('calculating error').addClass('result');
+        }).fail(function(xhr) {
+            var message = 'The prediction could not be calculated.';
+
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+                message = xhr.responseJSON.error;
+            }
+
+            result_holder.html(htmlEscape(message)).removeClass('calculating result').addClass('error');
+        }).always(function() {
+            updateGprCompletion();
+        });
+    });
+
+    loadGprAtoms();
 
 
     function loadXsamsSpecies() {

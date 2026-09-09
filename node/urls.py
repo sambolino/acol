@@ -12,5 +12,9 @@ urlpatterns = [
     url(r'^plot/(?P<coll_iaea_code>[\w-]+)/(?P<atom_inchi>[\w-]+)/(?P<temperature_index>[\w.]+)/$', views.plot),
     url(r'^explore/processes/$', views.explore_processes),
     url(r'^explore/process/(?P<tabdata_id>\d+)/$', views.explore_process_data),
+    url(r'^gpr/predict/$', views.gpr_predict),
+    url(r'^gpr/atoms/(?P<coll_iaea_code>[\w-]+)/$', views.get_gpr_atoms),
+    url(r'^gpr/states/(?P<coll_iaea_code>[\w-]+)/(?P<atom_inchikey>[\w-]+)/$', views.get_gpr_states),
+    url(r'^artifact-plots/(?P<coll_iaea_code>[\w-]+)/(?P<collision_id>\d+)/$', views.artifact_plot, name='artifact_plot'),
     url(r'^overview/stats/$', views.overview_stats),
 ]

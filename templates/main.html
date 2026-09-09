@@ -2,15 +2,15 @@
 <html>
 <head>
     <title>ACol - Database for Excitation-Ionization Collisional Atomic Processes</title>
-    <link rel="stylesheet" type="text/css" href="http://servo.aob.rs/acol/static/css/jquery-ui.css">
-    <link href="http://servo.aob.rs/acol/static/main.css" type="text/css" rel="stylesheet"/>
-    <link href="http://servo.aob.rs/acol/static/xmldisplay/XMLDisplay.css" type="text/css" rel="stylesheet"/>
-    <script src="http://servo.aob.rs/acol/static/xmldisplay/XMLDisplay.js" type="text/javascript"></script>
-    <script src="http://servo.aob.rs/acol/static/js/jquery-latest.min.js" type="text/javascript"></script>
-    <script src="http://servo.aob.rs/acol/static/js/jquery-ui.js" type="text/javascript"></script>
-    <script src="http://servo.aob.rs/acol/static/js/combo-ajax.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="{{ acol_base_url }}/static/css/jquery-ui.css">
+    <link href="{{ acol_base_url }}/static/main.css" type="text/css" rel="stylesheet"/>
+    <link href="{{ acol_base_url }}/static/xmldisplay/XMLDisplay.css" type="text/css" rel="stylesheet"/>
+    <script src="{{ acol_base_url }}/static/xmldisplay/XMLDisplay.js" type="text/javascript"></script>
+    <script src="{{ acol_base_url }}/static/js/jquery-latest.min.js" type="text/javascript"></script>
+    <script src="{{ acol_base_url }}/static/js/jquery-ui.js" type="text/javascript"></script>
+    <script src="{{ acol_base_url }}/static/js/combo-ajax.js" type="text/javascript"></script>
 </head>
-<body>
+<body data-base-url="{{ acol_base_url }}">
 	<div id = "header">
       <table width="100%">
          <tr>
@@ -27,7 +27,7 @@
             </td>
             <td width="450">
               <a href="https://www.ta3.sk/caosp/Eedition/FullTexts/vol52no3/pp71-77.pdf">
-                <img src="http://servo.aob.rs/acol/static/images/acol.jpg" title="atomic collision"/>
+                <img src="{{ acol_base_url }}/static/images/acol.jpg" title="atomic collision"/>
               </a>
             </td>
          </tr>
@@ -39,8 +39,9 @@
       <ul>
         <li><a href="#tabs-1">Overview</a></li>
         <li><a href="#tabs-2">Explore data</a></li>
-        <li><a href="#tabs-3">Qn plots</a></li>
-        <li><a href="#tabs-4">Generate XSAMS</a></li>
+        <li><a href="#tabs-3">GPR predictions</a></li>
+        <li><a href="#tabs-4">Qn plots</a></li>
+        <li><a href="#tabs-5">Generate XSAMS</a></li>
       </ul>
       <div id="tabs-1">
         <div id="OverviewHolder">
@@ -109,6 +110,31 @@
         </div>
       </div>
       <div id="tabs-3">
+        <p class="TabIntro">Estimate collision data with the trained Gaussian Process Regression models. The interval shows the model's 95% predictive uncertainty.</p>
+        <div id="GprHolder">
+          <form id="GprForm">
+            {% csrf_token %}
+            <div class="GprField GprProcessField">
+              <label for="GprProcess">Collision Type</label>
+              <select id="GprProcess" name="process" required>
+                <option value="">---------</option>
+                {% for collision_type in gpr_collision_types %}
+                <option value="{{ collision_type.iaea_code }}">{{ collision_type }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="GprField"><label for="GprAtom">Atom</label><select id="GprAtom" name="atom" disabled required><option value="">---------</option></select></div>
+            <div class="GprField"><label for="GprInitialN">Initial State</label><select id="GprInitialN" name="initial_n" disabled required><option value="">---------</option></select></div>
+            <div class="GprField"><label for="GprResultN">Final State</label><select id="GprResultN" name="result_n" disabled required><option value="">---------</option></select></div>
+            <div class="GprField"><label for="GprTemperature">Temperature</label><input id="GprTemperature" name="temperature" type="number" min="0" step="any" value="12000" disabled required></div>
+
+            <button id="GprCalculate" type="submit" disabled>Calculate prediction</button>
+          </form>
+          <div id="GprResult" aria-live="polite"></div>
+        </div>
+      </div>
+      <div id="tabs-4">
         <p class="TabIntro">Quick diagnostic plots of rate coefficients against principal quantum number for selected collision processes and temperatures.</p>
         <div class="styled-select">
           <ul>{{ p.as_ul }}</ul>
@@ -116,7 +142,7 @@
           <div id="PlotHolder"></div>
         </div>
       </div>
-      <div id="tabs-4">
+      <div id="tabs-5">
         <p class="TabIntro">Generate XSAMS output for selected collision processes and species. This is the low-level VAMDC-style query interface.</p>
         <div class="styled-select">
           <ul>{{ f.as_ul }}</ul>

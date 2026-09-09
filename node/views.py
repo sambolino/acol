@@ -10,12 +10,15 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from django.db.models import Q
+from django.conf import settings
 from django.template.loader import get_template
-from django.http import HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 
 from node.models import *
 from node.forms import *
+from node.gpr import predict as predict_with_gpr
 
 
 logger = logging.getLogger()
@@ -25,8 +28,8 @@ logger = logging.getLogger()
 # Private generic helpers
 # ----------------------------------------------------------------------
 
-def _json_response(data):
-    return HttpResponse(json.dumps(data), content_type='application/json')
+def _json_response(data, status=200):
+    return HttpResponse(json.dumps(data), content_type='application/json', status=status)
 
 
 def _get_collision_type(coll_iaea_code):
@@ -230,12 +233,35 @@ def _tabdata_to_explore_row(tabdata, include_values=False):
 
     sources = _sources_for_collision(collision) if collision else []
 
+    artifact_plot_url = ''
+    artifact_plots = []
+
+    if collision and collision.collision_type and collision.collision_type.iaea_code:
+        collision_type = collision.collision_type.iaea_code
+
+        if _artifact_plot_path(collision_type, collision.id):
+            artifact_plot_url = reverse(
+                'artifact_plot',
+                kwargs={
+                    'coll_iaea_code': collision_type,
+                    'collision_id': collision.id,
+                }
+            )
+            for model_name in ('gpr', 'pchip'):
+                if _artifact_plot_path(collision_type, collision.id, model_name):
+                    artifact_plots.append({
+                        'model': model_name.upper(),
+                        'url': artifact_plot_url + '?model=' + model_name,
+                    })
+
     row = {
         "id": tabdata.id,
         "title": str(tabdata),
 
         "collision_id": collision.id if collision else None,
         "collision": str(collision) if collision else "",
+        "artifact_plot_url": artifact_plot_url,
+        "artifact_plots": artifact_plots,
 
         "collision_type": collision.collision_type.iaea_code if collision else "",
         "collision_type_name": str(collision.collision_type) if collision else "",
@@ -466,6 +492,42 @@ def _overview_stats():
 # Private plot helpers
 # ----------------------------------------------------------------------
 
+def _artifact_plot_path(coll_iaea_code, collision_id, model_name=None):
+    """Find the generated reaction plot using the artifact naming convention."""
+    collision_type = (coll_iaea_code or '').strip().lower()
+
+    if not collision_type or collision_id is None:
+        return None
+
+    filename = 'reaction_%03d.png' % int(collision_id)
+    artifacts_dir = getattr(settings, 'ACOL_ARTIFACTS_DIR', '')
+
+    if model_name is not None and model_name not in ('gpr', 'pchip'):
+        return None
+
+    for model_name in (model_name,) if model_name is not None else ('gpr', 'pchip'):
+        candidate = os.path.join(
+            artifacts_dir,
+            '%s_%s_global' % (model_name, collision_type),
+            'images',
+            filename,
+        )
+
+        if os.path.isfile(candidate):
+            return candidate
+
+    return None
+
+
+def artifact_plot(request, coll_iaea_code, collision_id):
+    """Serve a generated ML plot for one collision reaction."""
+    path = _artifact_plot_path(coll_iaea_code, collision_id, request.GET.get('model'))
+
+    if not path:
+        raise Http404
+
+    return FileResponse(open(path, 'rb'), content_type='image/png')
+
 def _plot_rate_for_temperature(tabdata, temperature_index):
     y_axis = tabdata.first_y()
 
@@ -486,6 +548,89 @@ def _state_quantum_number(state):
         return state.qn
 
     return None
+
+
+def _state_quantum_numbers(states):
+    return sorted(
+        state.qn for state in states
+        if isinstance(state, AtomicState) and state.qn is not None
+    )
+
+
+def _gpr_state_pair(process, collision):
+    reactant_n = _state_quantum_numbers(collision.reactants.all())
+    product_n = _state_quantum_numbers(collision.products.all())
+
+    if process == 'EEX' and reactant_n and product_n:
+        return max(reactant_n), max(product_n)
+
+    if process in ('HAS', 'HPN') and len(reactant_n) >= 2:
+        return min(reactant_n), max(reactant_n)
+
+    if process == 'EDR' and len(product_n) >= 2:
+        return min(product_n), max(product_n)
+
+    if process == 'ERO' and reactant_n and product_n:
+        return max(reactant_n), max(product_n)
+
+    return None
+
+
+def _gpr_state_pairs(process, atom_inchikey):
+    if process == 'EDR':
+        role_filter = Q(products__species__inchikey=atom_inchikey)
+    else:
+        role_filter = Q(reactants__species__inchikey=atom_inchikey)
+
+    collisions = Collision.objects.filter(
+        role_filter,
+        collision_type__iaea_code=process,
+    ).prefetch_related('reactants', 'reactants__species', 'products', 'products__species').distinct()
+
+    pairs = set()
+
+    for collision in collisions:
+        pair = _gpr_state_pair(process, collision)
+
+        if pair:
+            pairs.add(pair)
+
+    return sorted(pairs)
+
+
+def _gpr_prediction_data(process, atom, initial_n, result_n, temperature):
+    element = atom.chemical_formula
+    data = {'temperature': temperature}
+
+    if process == 'EEX':
+        data.update({
+            'element': element,
+            'initial_n': initial_n,
+            'delta_n': str(int(result_n) - int(initial_n)),
+        })
+    elif process in ('HAS', 'HPN'):
+        data.update({
+            'element': element,
+            'lower_initial_n': initial_n,
+            'upper_initial_n': result_n,
+        })
+    elif process == 'EDR':
+        data.update({
+            'species': element,
+            'lower_final_n': initial_n,
+            'upper_final_n': result_n,
+            'vibrational_level': '0',
+        })
+    elif process == 'ERO':
+        data.update({
+            'element': element,
+            'ion_n': str(max(1, int(initial_n) - 1)),
+            'initial_neutral_n': initial_n,
+            'final_neutral_n': initial_n,
+            'final_excited_n': result_n,
+        })
+
+    return data
 
 
 def _second_item(queryset):
@@ -621,13 +766,92 @@ def index(request):
 
     f = Search_form()
     p = Plot_form()
+    gpr_collision_types = CollisionType.objects.filter(
+        iaea_code__in=('EEX', 'HAS', 'HPN', 'EDR', 'ERO')
+    ).order_by('id')
 
     html = template.render({
         'f': f,
         'p': p,
-    })
+        'gpr_collision_types': gpr_collision_types,
+        'acol_base_url': settings.ACOL_BASE_URL.rstrip('/'),
+    }, request)
 
     return HttpResponse(html)
+
+
+def gpr_predict(request):
+    """Calculate one prediction with the selected saved GPR model."""
+    if request.method != 'POST':
+        return _json_response({'error': 'Use POST to request a prediction.'}, status=405)
+
+    process = (request.POST.get('process') or '').strip().upper()
+    atom_inchikey = (request.POST.get('atom') or '').strip()
+    initial_n = request.POST.get('initial_n')
+    result_n = request.POST.get('result_n')
+
+    try:
+        atom = Atom.objects.filter(inchikey=atom_inchikey, ion_charge=0).first()
+
+        if atom is None:
+            raise Atom.DoesNotExist
+
+        try:
+            selected_pair = (int(initial_n), int(result_n))
+        except (TypeError, ValueError):
+            raise ValueError('Choose an available initial and result state.')
+
+        if selected_pair not in _gpr_state_pairs(process, atom_inchikey):
+            raise ValueError('Choose an available initial and result state.')
+
+        prediction_data = _gpr_prediction_data(
+            process,
+            atom,
+            initial_n,
+            result_n,
+            request.POST.get('temperature'),
+        )
+        result = predict_with_gpr(process, prediction_data)
+    except Atom.DoesNotExist:
+        return _json_response({'error': 'Choose an available atom.'}, status=400)
+    except ValueError as error:
+        return _json_response({'error': str(error)}, status=400)
+    except RuntimeError as error:
+        logger.exception('GPR prediction failed')
+        return _json_response({'error': str(error)}, status=503)
+
+    return _json_response(result)
+
+
+def get_gpr_atoms(request, coll_iaea_code):
+    """Return neutral atoms in the role used by the selected GPR model."""
+    coll_type = _get_collision_type(coll_iaea_code)
+
+    if coll_iaea_code == 'EDR':
+        atoms = Atom.objects.filter(
+            ion_charge=0,
+            speciesstate__products__collision_type=coll_type,
+        ).distinct()
+    else:
+        atoms = Atom.objects.filter(
+            ion_charge=0,
+            speciesstate__reactants__collision_type=coll_type,
+        ).distinct()
+
+    return _json_response(_species_dict(atoms))
+
+
+def get_gpr_states(request, coll_iaea_code, atom_inchikey):
+    """Return the initial/result state pairs available for prediction."""
+    results = {}
+
+    for initial_n, result_n in _gpr_state_pairs(coll_iaea_code, atom_inchikey):
+        results.setdefault(str(initial_n), []).append(result_n)
+
+    return _json_response({
+        'initial': sorted(int(value) for value in results),
+        'results': results,
+    })
 
 
 def get_products(request, coll_iaea_code):

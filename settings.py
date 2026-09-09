@@ -146,6 +146,12 @@ MIDDLEWARE = (
 
 PROJECT_DIR = os.path.dirname(__file__)
 
+# Generated ML reaction plots.  The directory layout is conventional:
+# artifacts/{model}_{collision_type}_global/images/reaction_{collision_id:03d}.png
+ACOL_ARTIFACTS_DIR = os.path.join(PROJECT_DIR, 'acol-model', 'artifacts')
+ACOL_MODEL_DIR = os.path.join(PROJECT_DIR, 'acol-model')
+ACOL_GPR_PYTHON = os.path.join(ACOL_MODEL_DIR, '.venv', 'bin', 'python')
+
 GRAPH_MODELS = {
   'all_applications': True,
   'group_models': True,
@@ -159,6 +165,7 @@ SECRET_KEY = "xxx"
 
 
 QUERY_STORE_ACTIVE = True
+ACOL_BASE_URL = 'http://servo.aob.rs/acol'
 
 
 try:
