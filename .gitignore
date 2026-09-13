@@ -48,6 +48,8 @@ tmp/
 # Your project-specific
 ############################
 data/
+!acol-model/data/
+!acol-model/data/**
 static/plots/
 static_old/
 
