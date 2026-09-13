@@ -582,7 +582,7 @@ $(document).ready(function(){
                 var plot = data.artifact_plots[i];
                 plots += '<h4>' + htmlEscape(plot.model) + '</h4>' +
                     '<img class="ExploreArtifactPlot" src="' +
-                    htmlEscape(base_url + plot.url) +
+                    htmlEscape(plot.url) +
                     '" alt="' + htmlEscape(plot.model) + ' reaction plot">';
             }
             $('#ExplorePlot').html(plots);
