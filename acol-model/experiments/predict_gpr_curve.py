@@ -26,6 +26,8 @@ def log10_interval_to_linear(mean, deviation):
 
 def _prepare_transition(process: str, values: dict[str, str]) -> tuple[pd.DataFrame, dict[str, object]]:
     data = pd.read_csv(Path("data/runtime") / f"{process}.csv").copy()
+    if process == "ERO" and not data["x_unit"].eq("K").all():
+        raise ValueError("ERO temperature data must use kelvins")
 
     if process == "EEX":
         data["element"] = data["reactants"].str.extract(r"^([A-Za-z]+)")[0]
