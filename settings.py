@@ -147,7 +147,7 @@ MIDDLEWARE = (
 PROJECT_DIR = os.path.dirname(__file__)
 
 # Generated ML reaction plots.  The directory layout is conventional:
-# artifacts/{model}_{collision_type}_global/images/reaction_{collision_id:03d}.png
+# artifacts/{model}_{collision_type}_global/html/reaction_{collision_id:03d}.html
 ACOL_ARTIFACTS_DIR = os.path.join(PROJECT_DIR, 'acol-model', 'artifacts')
 ACOL_MODEL_DIR = os.path.join(PROJECT_DIR, 'acol-model')
 ACOL_GPR_PYTHON = os.path.join(ACOL_MODEL_DIR, '.venv', 'bin', 'python')

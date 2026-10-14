@@ -570,6 +570,23 @@ $(document).ready(function(){
         $('body').removeClass('ExploreModalOpen');
     }
 
+    window.addEventListener('message', function(event) {
+        if (!event.data || event.data.type != 'acol-artifact-height') {
+            return;
+        }
+
+        var height = Number(event.data.height);
+        if (!isFinite(height) || height < 200 || height > 2000) {
+            return;
+        }
+
+        $('.ExploreArtifactPlotInteractive').each(function() {
+            if (this.contentWindow === event.source) {
+                this.style.height = Math.ceil(height) + 'px';
+            }
+        });
+    });
+
     function renderExploreModalContent(data) {
         $('#ExploreModalTitle').html(
             htmlEscape(data.collision_type_name + ': ' + data.reaction)
@@ -581,9 +598,10 @@ $(document).ready(function(){
             for (var i = 0; i < data.artifact_plots.length; i++) {
                 var plot = data.artifact_plots[i];
                 plots += '<h4>' + htmlEscape(plot.model) + '</h4>' +
-                    '<img class="ExploreArtifactPlot" src="' +
+                    '<iframe class="ExploreArtifactPlot ExploreArtifactPlotInteractive" src="' +
                     htmlEscape(plot.url) +
-                    '" alt="' + htmlEscape(plot.model) + ' reaction plot">';
+                    '" title="' + htmlEscape(plot.model) +
+                    ' interactive reaction plot" loading="lazy" scrolling="no" sandbox="allow-scripts"></iframe>';
             }
             $('#ExplorePlot').html(plots);
         } else {

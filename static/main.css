@@ -489,6 +489,17 @@ a:hover {
     height: auto;
 }
 
+.ExploreArtifactPlotInteractive {
+    height: 610px;
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .ExploreArtifactPlotInteractive {
+        height: 450px;
+    }
+}
+
 /* =========================================================
    Tables
    ========================================================= */

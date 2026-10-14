@@ -248,7 +248,12 @@ def _tabdata_to_explore_row(tabdata, include_values=False):
                 }
             )
             for model_name in ('gpr', 'pchip'):
-                if _artifact_plot_path(collision_type, collision.id, model_name):
+                plot_path = _artifact_plot_path(
+                    collision_type,
+                    collision.id,
+                    model_name,
+                )
+                if plot_path:
                     artifact_plots.append({
                         'model': model_name.upper(),
                         'url': artifact_plot_url + '?model=' + model_name,
@@ -493,13 +498,13 @@ def _overview_stats():
 # ----------------------------------------------------------------------
 
 def _artifact_plot_path(coll_iaea_code, collision_id, model_name=None):
-    """Find the generated reaction plot using the artifact naming convention."""
+    """Find the generated HTML reaction plot using the artifact naming convention."""
     collision_type = (coll_iaea_code or '').strip().lower()
 
     if not collision_type or collision_id is None:
         return None
 
-    filename = 'reaction_%03d.png' % int(collision_id)
+    filename = 'reaction_%03d.html' % int(collision_id)
     artifacts_dir = getattr(settings, 'ACOL_ARTIFACTS_DIR', '')
 
     if model_name is not None and model_name not in ('gpr', 'pchip'):
@@ -509,7 +514,7 @@ def _artifact_plot_path(coll_iaea_code, collision_id, model_name=None):
         candidate = os.path.join(
             artifacts_dir,
             '%s_%s_global' % (model_name, collision_type),
-            'images',
+            'html',
             filename,
         )
 
@@ -526,7 +531,7 @@ def artifact_plot(request, coll_iaea_code, collision_id):
     if not path:
         raise Http404
 
-    return FileResponse(open(path, 'rb'), content_type='image/png')
+    return FileResponse(open(path, 'rb'), content_type='text/html; charset=utf-8')
 
 def _plot_rate_for_temperature(tabdata, temperature_index):
     y_axis = tabdata.first_y()
